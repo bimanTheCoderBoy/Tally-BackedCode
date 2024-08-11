@@ -310,7 +310,7 @@ export const getUser = AsyncHandler(async (req, res, next) => {
 
     }
   } else {
-    return res.status(400).json({ success: false, message: "User not found" });
+    return res.status(200).json({ success: false, message: "User not found" });
   }
 });
 
