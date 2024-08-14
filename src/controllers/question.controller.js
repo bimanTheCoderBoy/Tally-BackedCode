@@ -3,21 +3,21 @@ import Question from '../models/Questions.model.js';
 import AsyncHandler from '../utils/AsyncHandler.js';
 import mongoose from 'mongoose';
 import ApiError from '../utils/ApiError.js';
-import {executeCoder,runJavaCompile,runJavaInDocker} from '../utils/executeCoder.js';
+import { executeCoder, runJavaCompile, runJavaInDocker } from '../utils/executeCoder.js';
 import fs from "fs"
 // Get all questions
 export const getAllQuestions = AsyncHandler(async (req, res) => {
   // get question tittle and dificulty level only as a form of an array of objects
 
-  
+
   const questions = await Question.find().select('title difficulty');
 
   // If no questions are found, return an empty array, at first when no question is created
   if (!questions.length) {
-    return res.status(200).json([]);
+    return res.status(200).json({ message: "Unable to fetch questions", success: false });
   }
 
-  res.status(200).json(questions);
+  res.status(200).json({ questions, success: true });
   // res.status(200).json({ message: 'test' });
 });
 
@@ -27,15 +27,15 @@ export const getQuestionById = AsyncHandler(async (req, res) => {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: 'Invalid question ID format' });
+    return res.status(400).json({ message: 'Invalid question ID format', success: false });
   }
 
   const question = await Question.findById(id);
   if (question) {
-    res.status(200).json(question);
+    res.status(200).json({ question, success: true });
   }
   else {
-    res.status(404).json({ message: 'Question not found' });
+    res.status(404).json({ message: 'Question not found', success: false });
   }
 });
 
@@ -75,84 +75,84 @@ export const addQuestion = AsyncHandler(async (req, res) => {
   await newQuestion.save();
 
   console.log("done");
-  res.status(201).json(newQuestion);
+  res.status(201).json({ success: true });
 });
 
 
-export const getDiscussions=AsyncHandler(async()=>{
-  const{id}=req.params;
-  if(!id){
-    throw new ApiError('Missing ID',400);
+export const getDiscussions = AsyncHandler(async () => {
+  const { id } = req.params;
+  if (!id) {
+    throw new ApiError('Missing ID', 400);
   }
-  const question=await Question.findById(id);
-  const discussions=question.discussions;
-  res.status(200).json({discussions:discussions});
+  const question = await Question.findById(id);
+  const discussions = question.discussions;
+  res.status(200).json({ discussions: discussions });
 })
-export const putDiscussions=AsyncHandler(async()=>{
-  const{id}=req.params;
-  if(!id){
-    throw new ApiError('Missing ID',400);
+export const putDiscussions = AsyncHandler(async () => {
+  const { id } = req.params;
+  if (!id) {
+    throw new ApiError('Missing ID', 400);
   }
 
-  const {discussion}=req.body;
-  if(!discussion){
-    throw new ApiError('Missing required fields',400);
+  const { discussion } = req.body;
+  if (!discussion) {
+    throw new ApiError('Missing required fields', 400);
   }
-  const question=await Question.findByIdAndUpdate(id,{$push:{discussions:discussion}});
-  if(!question){
-    throw new ApiError('Question not found',404);
+  const question = await Question.findByIdAndUpdate(id, { $push: { discussions: discussion } });
+  if (!question) {
+    throw new ApiError('Question not found', 404);
   }
-  res.status(200).json({message:'Discussion added successfully'});
+  res.status(200).json({ message: 'Discussion added successfully' });
 })
 
 //test code section
-export const runTestCase=AsyncHandler(async (req,res)=>{
-  const {id}=req.params;
-  const { language, code, input, className} = req.body;
-// console.log(language, code, input);
-    
-  if(!language||!code){
-    throw new ApiError('Missing required fields',400);
+export const runTestCase = AsyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { language, code, input, className } = req.body;
+  // console.log(language, code, input);
+
+  if (!language || !code) {
+    throw new ApiError('Missing required fields', 400);
   }
-  if(!id){
-      throw new ApiError('Missing ID',400);
+  if (!id) {
+    throw new ApiError('Missing ID', 400);
   }
 
-  const question=await Question.findById(id);
+  const question = await Question.findById(id);
 
-  if(!question){
-      throw new ApiError('Question not found',404);
+  if (!question) {
+    throw new ApiError('Question not found', 404);
   }
-  let result=[];
-  const testCases=question.testCases;
+  let result = [];
+  const testCases = question.testCases;
 
   //compile the code
-  const folder=await runJavaCompile(code,className);
-  console.log(className+"jjjjjjjjjjjjjjjjjj");
-  console.log(folder+"  compiled")
-  for(let i=0; i<testCases.length; i++){
-    const tcinput=testCases[i].input;
-    const tcoutput=testCases[i].output;
-    let actualOutput= await runJavaInDocker(folder,className,tcinput);
-    
+  const folder = await runJavaCompile(code, className);
+  console.log(className + "jjjjjjjjjjjjjjjjjj");
+  console.log(folder + "  compiled")
+  for (let i = 0; i < testCases.length; i++) {
+    const tcinput = testCases[i].input;
+    const tcoutput = testCases[i].output;
+    let actualOutput = await runJavaInDocker(folder, className, tcinput);
+
     // if(actualOutput!=tcoutput){
     //   throw new ApiError('Test case failed',400);
     // }
-    actualOutput=actualOutput.replace(/[\x00-\x1F\x7F-\x9F]/g, "");
+    actualOutput = actualOutput.replace(/[\x00-\x1F\x7F-\x9F]/g, "");
     console.log(actualOutput);
-    if(actualOutput==tcoutput){
+    if (actualOutput == tcoutput) {
       result.push({
-        input:tcinput,
-        actualOutput:actualOutput,
-        axpectedOutput:tcoutput,
-        status:'passed'
+        input: tcinput,
+        actualOutput: actualOutput,
+        axpectedOutput: tcoutput,
+        status: 'passed'
       });
-    }else{
+    } else {
       result.push({
-        input:tcinput,
-        actualOutput:actualOutput,
-        axpectedOutput:tcoutput,
-        status:'failed'
+        input: tcinput,
+        actualOutput: actualOutput,
+        axpectedOutput: tcoutput,
+        status: 'failed'
       });
     }
 
@@ -166,14 +166,13 @@ export const runTestCase=AsyncHandler(async (req,res)=>{
   try {
     if (fs.existsSync(folder)) {
       // fs.unlinkSync(`${folder}/TempCode.java`);
-    fs.unlinkSync(`${folder}/${className}.class`);
-        await fs.promises.rm(folder, { recursive: true, force: true });
-  
+      fs.unlinkSync(`${folder}/${className}.class`);
+      await fs.promises.rm(folder, { recursive: true, force: true });
+
     }
   } catch (error) {
     console.log(error);
   }
-  
-res.status(200).json(result);
+
+  res.status(200).json({ result, success: true });
 });
- 

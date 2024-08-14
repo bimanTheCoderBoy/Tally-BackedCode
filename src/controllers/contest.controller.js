@@ -18,17 +18,16 @@ export const getAllContests = AsyncHandler(async (req, res) => {
 
   // Check if there are no ongoing contests
   if (contests.length === 0) {
-    return res.status(404).json({ message: "No ongoing contests found." });
+    return res.status(404).json({ message: "No contests found.", success: false });
   }
-
   // Send the list of ongoing contests
-  res.status(200).json(contests);
+  res.status(200).json({ contests, success: true });
 });
 
 // Get a single contest by ID
 export const getContestById = AsyncHandler(async (req, res) => {
   const { contestcode } = req.params;
-
+  console.log(contestcode);
   // Validate the ID format (assuming it's a MongoDB ObjectId)
 
 
@@ -38,13 +37,14 @@ export const getContestById = AsyncHandler(async (req, res) => {
     select: "title difficulty",
   });
 
+
   // Check if the contest was found
   if (!contest) {
-    return res.status(404).json({ message: "Contest not found" });
+    return res.status(404).json({ message: "Contest not found", success: false });
   }
 
   // Send the contest details in the response
-  res.status(200).json(contest);
+  res.status(200).json({ contest, success: true });
 });
 
 // Create a new contest
@@ -108,7 +108,7 @@ export const createContest = AsyncHandler(async (req, res) => {
   await newContest.save();
 
   // Send success response
-  res.status(201).json(newContest.contestCode);
+  res.status(201).json({ code: newContest.contestCode, success: true });
 });
 
 // Join a contest
@@ -124,14 +124,14 @@ export const joinContest = AsyncHandler(async (req, res) => {
   // Find the contest and check if it exists
   const contest = await Contest.findOne({ contestCode });
   if (!contest) {
-    return res.status(404).json({ message: "Contest not found" });
+    return res.status(404).json({ message: "Contest not found", success: false });
   }
 
   // Check if the contest is ongoing
-  const currentTime = new Date();
-  if (currentTime < contest.startTime || currentTime > contest.endTime) {
-    return res.status(400).json({ message: "This contest is not ongoing." });
-  }
+  // const currentTime = new Date();
+  // if (currentTime < contest.startTime || currentTime > contest.endTime) {
+  //   return res.status(400).json({ message: "This contest is not ongoing." });
+  // }
 
   // Access the 'contest' cookie
   const contestCookie = req.cookies.contest;
@@ -171,8 +171,7 @@ export const joinContest = AsyncHandler(async (req, res) => {
   const expiresIn = new Date(contest.endTime) - new Date();
 
   const options = {
-    // expires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
-    expires: new Date(Date.now() + expiresIn), // Set expiration to contest end time
+    // expires: new Date(Date.now() + expiresIn), // Set expiration to contest end time
     httpOnly: true,
   };
   res.cookie(
@@ -180,15 +179,16 @@ export const joinContest = AsyncHandler(async (req, res) => {
     JSON.stringify({ userid: user._id, contestCode }),
     options
   );
+  console.log(res.cookies);
   // Respond with success
   res
     .status(200)
-    .json({ message: "User successfully joined the contest.", userName });
+    .json({ message: "User successfully joined the contest.", userName, success: true });
 });
 
 export const submitContest = AsyncHandler(async (req, res) => {
   res.clearCookie("contest");
-  res.status(200).json({ message: "User successfully submitted the contest" });
+  res.status(200).json({ message: "User successfully submitted the contest", success: true });
 });
 
 // // Get leaderboard for a specific contest
@@ -286,7 +286,7 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
     const response = await User.findByIdAndUpdate(userid, { $push: { questions: qid } });
   }
 
-  res.status(200).json(result);
+  res.status(200).json({ result, success: true });
 });
 
 export const getUser = AsyncHandler(async (req, res, next) => {
@@ -310,7 +310,7 @@ export const getUser = AsyncHandler(async (req, res, next) => {
 
     }
   } else {
-    return res.status(400).json({ success: false, message: "User not found" });
+    return res.status(200).json({ success: false, message: "User not found" });
   }
 });
 
@@ -321,7 +321,7 @@ export const getLeaderboard = AsyncHandler(async (req, res) => {
 
   const contest = await Contest.findOne({ contestCode: contestcode }).populate("participants");
   if (!contest) {
-    return res.status(404).json({ message: "Contest not found" });
+    return res.status(404).json({ success: false, message: "Contest not found" });
   }
   const particepents = contest.participants;
 
@@ -332,11 +332,11 @@ export const getLeaderboard = AsyncHandler(async (req, res) => {
   board.sort((a, b) => {
     // First, compare by numberOfQuestionsDone (descending)
     if (b.noq !== a.noq) {
-        return b.noq - a.noq;
+      return b.noq - a.noq;
     }
     // If numberOfQuestionsDone is the same, compare by submitTime (ascending)
     return new Date(a.time) - new Date(b.time);
-});
-  res.send(board);
+  });
+  res.send({ participants: board, success: true });
 
 });
