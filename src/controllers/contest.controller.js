@@ -4,11 +4,8 @@ import Question from "../models/Questions.model.js";
 import AsyncHandler from "../utils/AsyncHandler.js";
 import fs from "fs";
 import User from "../models/User.model.js";
-import {
-  executeCoder,
-  runJavaCompile,
-  runJavaInDocker,
-} from "../utils/executeCoder.js";
+import { runJavaCompile, runJavaInDocker,runTestCaseJava } from "../utils/runJavaCode.js";
+import { runPythonTestCase } from "../utils/runPythonCode.js";
 // Get all ongoing contests
 export const getAllContests = AsyncHandler(async (req, res) => {
   // Find contests where the end time is greater than or equal to the current date
@@ -31,12 +28,13 @@ export const getContestById = AsyncHandler(async (req, res) => {
 
   // Validate the ID format (assuming it's a MongoDB ObjectId)
 
-
   // const contest = await Contest.findById(id).populate('questions');
-  const contest = await Contest.findOne({ contestCode: contestcode }).select(" -__v").populate({
-    path: "questions",
-    select: "title difficulty",
-  });
+  const contest = await Contest.findOne({ contestCode: contestcode })
+    .select(" -__v")
+    .populate({
+      path: "questions",
+      select: "title difficulty",
+    });
 
   // Check if the contest was found
   if (!contest) {
@@ -88,8 +86,8 @@ export const createContest = AsyncHandler(async (req, res) => {
       .json({ message: "startTime must be before endTime." });
   }
 
-  let result = '';
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let result = "";
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
   for (let i = 0; i < 8; i++) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
@@ -215,8 +213,6 @@ export const submitContest = AsyncHandler(async (req, res) => {
 // });
 
 export const submitQuestion = AsyncHandler(async (req, res) => {
-
-
   const { qid } = req.params;
   const data = req.cookies.contest;
   const { userid, contestCode } = JSON.parse(data);
@@ -239,41 +235,29 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
   if (!question) {
     throw new ApiError("Question not found", 404);
   }
-  let result = [];
   const testCases = question.testCases;
+
+
+  let result =[];
+  switch (language) {
+    case 'java':
+        result =  await runTestCaseJava(code, className, testCases);
+        break;
+    case 'python':
+      result = await runPythonTestCase(code, testCases);
+        break;
+    case 'java':
+        output = await runJavaCode(code, input,className);
+        break;
+    case 'java':
+        output = await runJavaCode(code, input,className);
+        break;
+    default:
+        throw new ApiError('Unsupported language', 404);
+}
+   
   //compile the code
-  const folder = await runJavaCompile(code, className);
-  for (let i = 0; i < testCases.length; i++) {
-    const tcinput = testCases[i].input;
-    const tcoutput = testCases[i].output;
-    let actualOutput = await runJavaInDocker(folder, className, tcinput);
-    actualOutput = actualOutput.replace(/[\x00-\x1F\x7F-\x9F]/g, "");
-    console.log(actualOutput);
-    if (actualOutput == tcoutput) {
-      result.push({
-        input: tcinput,
-        actualOutput: actualOutput,
-        axpectedOutput: tcoutput,
-        status: "passed",
-      });
-    } else {
-      result.push({
-        input: tcinput,
-        actualOutput: actualOutput,
-        axpectedOutput: tcoutput,
-        status: "failed",
-      });
-    }
-  }
-  try {
-    if (fs.existsSync(folder)) {
-      // fs.unlinkSync(`${folder}/TempCode.java`);
-      fs.unlinkSync(`${folder}/${className}.class`);
-      await fs.promises.rm(folder, { recursive: true, force: true });
-    }
-  } catch (error) {
-    console.log(error);
-  }
+
   let allPassed = true;
   for (let i = 0; i < result.length; i++) {
     if (!result[i].status == "passed") {
@@ -283,7 +267,9 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
   }
   console.log(allPassed);
   if (allPassed) {
-    const response = await User.findByIdAndUpdate(userid, { $push: { questions: qid } });
+    const response = await User.findByIdAndUpdate(userid, {
+      $push: { questions: qid },
+    });
   }
 
   res.status(200).json(result);
@@ -298,28 +284,27 @@ export const getUser = AsyncHandler(async (req, res, next) => {
     // Extract userid from the cookie
     const { userid, contestCode } = JSON.parse(contestCookie);
 
-    const contest = await Contest.findOne({ contestCode })
+    const contest = await Contest.findOne({ contestCode });
     // return user details if already added
     if (contest.participants.includes(userid)) {
       const findUser = await User.findById(userid);
       res.status(200).json({
         findUser,
         contestCode,
-        success: true
+        success: true,
       });
-
     }
   } else {
     return res.status(200).json({ success: false, message: "User not found" });
   }
 });
 
-
-
 export const getLeaderboard = AsyncHandler(async (req, res) => {
   const { contestcode } = req.params;
 
-  const contest = await Contest.findOne({ contestCode: contestcode }).populate("participants");
+  const contest = await Contest.findOne({ contestCode: contestcode }).populate(
+    "participants"
+  );
   if (!contest) {
     return res.status(404).json({ message: "Contest not found" });
   }
@@ -327,16 +312,21 @@ export const getLeaderboard = AsyncHandler(async (req, res) => {
 
   //build the list of participants
   const board = particepents.map((ele) => {
-    return { name: ele.username, noq: ele.questions.length, time: ele.updatedAt }
-  })
+    return {
+      name: ele.username,
+      noq: ele.questions.length,
+      time: ele.updatedAt,
+    };
+  });
   board.sort((a, b) => {
     // First, compare by numberOfQuestionsDone (descending)
     if (b.noq !== a.noq) {
-        return b.noq - a.noq;
+      return b.noq - a.noq;
     }
     // If numberOfQuestionsDone is the same, compare by submitTime (ascending)
     return new Date(a.time) - new Date(b.time);
-});
+  });
   res.send(board);
-
 });
+
+
