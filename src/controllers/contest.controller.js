@@ -17,9 +17,9 @@ export const getAllContests = AsyncHandler(async (req, res) => {
   );
 
   // Check if there are no ongoing contests
-  if (contests.length === 0) {
-    return res.status(404).json({ message: "No ongoing contests found." });
-  }
+  // if (contests.length === 0) {
+  //   return res.status(404).json({ message: "No ongoing contests found." });
+  // }
 
   // Send the list of ongoing contests
   res.status(200).json(contests);
@@ -332,11 +332,11 @@ export const getLeaderboard = AsyncHandler(async (req, res) => {
   board.sort((a, b) => {
     // First, compare by numberOfQuestionsDone (descending)
     if (b.noq !== a.noq) {
-        return b.noq - a.noq;
+      return b.noq - a.noq;
     }
     // If numberOfQuestionsDone is the same, compare by submitTime (ascending)
     return new Date(a.time) - new Date(b.time);
-});
+  });
   res.send(board);
 
 });
