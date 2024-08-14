@@ -54,7 +54,7 @@ export async function runJavaCode(code, input,className) {
 
 
 export async function runJavaInDocker(folder,className, input) {
-    console.log(className+"twst ");
+    
     return new Promise(async (resolve, reject) => {
         const tempDir = process.cwd(); // Use current working directory for Docker binding
         
@@ -95,7 +95,7 @@ export async function runJavaInDocker(folder,className, input) {
             stream.on('data', (data) => {
                 output += data.toString();
             });
-            console.log(folder);
+        
             // Send input to the container's stdin
             // if (input) {
             //     stream.write(input);
@@ -116,7 +116,7 @@ export async function runJavaInDocker(folder,className, input) {
                     });
                 }),
                 timeoutPromise
-            ]).catch((err) => container.kill());
+            ])
 
             resolve(output);
         } catch (err) {
@@ -185,7 +185,6 @@ export const runTestCaseJava=async (code, className, testCases) => {
       const tcoutput = testCases[i].output;
       let actualOutput = await runJavaInDocker(folder, className, tcinput);
       actualOutput = actualOutput.replace(/[\x00-\x1F\x7F-\x9F]/g, "");
-      console.log(actualOutput);
       if (actualOutput == tcoutput) {
         result.push({
           input: tcinput,
