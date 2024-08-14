@@ -43,6 +43,10 @@ import questionRouter from "./routers/question.router.js"
 app.use("/api/v1/question", questionRouter)
 import contestRouter from "./routers/contest.router.js"
 app.use("/api/v1/contest", contestRouter)
+import loginUserRouter from './routers/loginUser.router.js'
+app.use("/api/v1/login/user", loginUserRouter);
+import otpRouter from './routers/otp.router.js'
+app.use("/api/v1/otp", otpRouter);
 
 
 // error middleware

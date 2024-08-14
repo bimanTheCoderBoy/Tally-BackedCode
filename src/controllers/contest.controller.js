@@ -126,7 +126,7 @@ export const joinContest = AsyncHandler(async (req, res) => {
   }
 
   // Check if the contest is ongoing
-  // const currentTime = new Date();
+  const currentTime = new Date();
   if (currentTime < contest.startTime || currentTime > contest.endTime) {
     return res.status(200).json({ message: "This contest is not ongoing." });
   }
