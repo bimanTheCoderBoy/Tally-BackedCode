@@ -56,7 +56,8 @@ export async function runJavaCode(code, input,className) {
 export async function runJavaInDocker(folder,className, input) {
     
     return new Promise(async (resolve, reject) => {
-        const tempDir = process.cwd(); // Use current working directory for Docker binding
+        // const tempDir = process.cwd();
+        const tempDir = process.env.HOST_URL; 
         
         try {
             // Create Docker container for running the Java class
@@ -66,12 +67,12 @@ export async function runJavaInDocker(folder,className, input) {
                 // Run the Java program
                 Tty: false,
                 HostConfig: {
-                    AutoRemove: true, // Automatically remove after execution
+                    AutoRemove: true, 
                     Binds: [`${tempDir}:/usr/src/app`],
-                    NetworkMode: 'none', // Disable network access
-                    Memory: 512 * 1024 * 1024, // 512MB memory limit
+                    NetworkMode: 'none', 
+                    Memory: 512 * 1024 * 1024,
                     CpuPeriod: 100000,
-                    CpuQuota: 50000, // 50% of one CPU
+                    CpuQuota: 50000, 
                 },
                 WorkingDir: '/usr/src/app',
                 OpenStdin: true, // Open stdin for the container

@@ -16,17 +16,17 @@ export async function runPythonCode(code, input) {
         fs.mkdirSync(folder, { recursive: true });
         fs.writeFileSync(pythonFileName, code);
 
-        const tempDir = process.cwd(); 
+        // const tempDir = process.cwd(); 
+        const tempDir = process.env.HOST_URL; 
        
         try {
             // Create Docker container for running the Python script
             const container = await docker.createContainer({
                 Image: 'python:3.10-slim',
-                // Cmd: ['ls'],
                 Cmd: ['sh', '-c', `echo "${input}" | python3 ${folder}/TempCode.py`],
                 Tty: false,
                 HostConfig: {
-                    // AutoRemove: true,
+                    AutoRemove: true,
                     Binds: [`${tempDir}:/app`],
                     NetworkMode: 'none',
                     Memory: 512 * 1024 * 1024,
