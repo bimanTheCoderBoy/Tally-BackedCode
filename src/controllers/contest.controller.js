@@ -127,9 +127,9 @@ export const joinContest = AsyncHandler(async (req, res) => {
 
   // Check if the contest is ongoing
   // const currentTime = new Date();
-  // if (currentTime < contest.startTime || currentTime > contest.endTime) {
-  //   return res.status(400).json({ message: "This contest is not ongoing." });
-  // }
+  if (currentTime < contest.startTime || currentTime > contest.endTime) {
+    return res.status(200).json({ message: "This contest is not ongoing." });
+  }
 
   // Access the 'contest' cookie
   const contestCookie = req.cookies.contest;
@@ -169,7 +169,7 @@ export const joinContest = AsyncHandler(async (req, res) => {
   const expiresIn = new Date(contest.endTime) - new Date();
 
   const options = {
-    // expires: new Date(Date.now() + expiresIn), // Set expiration to contest end time
+    expires: new Date(Date.now() + expiresIn), // Set expiration to contest end time
     httpOnly: true,
   };
   res.cookie(
