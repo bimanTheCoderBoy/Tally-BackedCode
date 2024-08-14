@@ -3,39 +3,42 @@ import mongoose from 'mongoose'
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 
-const LoginUserSchema = new mongoose.Schema(
-  {
-    username: {
-      type: String,
-      required: true,
-      unique: [true, "userName allready taken"],
-      length: [3, 'username must be longer than'],
-      lowercase: true,
-      trim: true,
-      index: true
-    },
-    password: {
-      type: String,
-      required: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: [true, "email allready taken"],
-      lowercase: true,
-      trim: true,
-      match: [/\S+@\S+\.\S+/, 'Please provide a valid email address'],
-    },
-    fullName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    queationSolved: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Question"
-    }],
+const LoginUserSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: true,
+    unique: [true, "userName allready taken"],
+    length: [3, 'username must be longer than'],
+    lowercase: true,
+    trim: true,
+    index: true
   },
+  password: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: [true, "email allready taken"],
+    lowercase: true,
+    trim: true,
+    match: [/\S+@\S+\.\S+/, 'Please provide a valid email address'],
+  },
+  fullName: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  queationSolved: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Question"
+  }],
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+},
 { timestamps: true })
 
 

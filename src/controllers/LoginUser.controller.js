@@ -2,12 +2,27 @@
 import AsyncHandler from '../utils/AsyncHandler.js'
 import ApiError from '../utils/ApiError.js';
 import ApiResponse from '../utils/ApiResponse.js'
+import nodemailer from 'nodemailer';
+import Otp from '../models/Otp.model.js'
 import LoginUser from '../models/LoginUser.model.js';
 import jwt from "jsonwebtoken"
+import crypto from 'crypto';
 
 
-// register 
-const registerUser = AsyncHandler(async (req, res, next) => {
+// Setup email transporter, 
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    // secure: true,
+    port: 465,
+    auth: {
+        user: 'pukutusputuskutus@gmail.com',
+        pass: 'cidz ekcx uehx btnm'
+    }
+});
+
+
+// send otp for email verification
+const sendOtp = AsyncHandler(async (req, res, next) => {
 
 
     //get user Details from frontend
@@ -15,50 +30,179 @@ const registerUser = AsyncHandler(async (req, res, next) => {
 
 
     //field validation ( if blank or not )
-    if ([password, fullName, email, username].some((field) => field.trim() === "")) {
-        throw new ApiError(400, "Invalid Api Field")
+    if ([username, password, email, fullName].some((field) => field.trim() === "")) {
+        res.status(400).json(new ApiResponse({}, "All field are required"))
     }
 
 
-    //allready exists check
-    const existedUser = await LoginUser.findOne({
-        $or: [{ email }, { username }]
+    // Check existed verified user
+    const existedVerifiedUser = await LoginUser.findOne({
+        $or: [
+            { email, isVerified: true },
+            { username, isVerified: true }
+        ]
     });
-    if (existedUser) {
-        throw new ApiError(409, "User Already Exists")
+    if (existedVerifiedUser) {
+        return res.status(409).json(new ApiResponse({}, "User already exists"))
     }
 
 
-    //create user object
-    const newUser = await LoginUser.create({
-        fullName,
+    // Check existed not verified user
+    const existedNotVerifiedUser = await LoginUser.findOne({
+        $or: [
+            { email, isVerified: false },
+            { username, isVerified: false }
+        ]
+    });
+    if (!existedNotVerifiedUser) {
+        // Create user object
+        const newUser = await LoginUser.create({
+            fullName,
+            email,
+            username: username.toLowerCase(),
+            password,
+        });
+        // Save user to the database
+        await newUser.save();
+    }
+
+
+    // Generate OTP
+    const otp = crypto.randomInt(100000, 999999); // Generates a 6-digit number
+    // const expiresAt = Date.now() + 60 * 60 * 1000; // OTP valid for 2 minutes
+    const expiresAt = Date.now() + 5 * 60 * 1000; // OTP valid for 10 minutes
+
+
+    // Save OTP and expiration to database
+    await Otp.create({ email, otp, expiresAt });
+
+
+    // Send OTP via email
+    const mailOptions = {
+        from: 'pukutusputuskutus@gmail.com',
+        to: email,
+        subject: 'Your OTP for email verification',
+        // text: `Your OTP is ${otp}. It is valid for 60 minutes.`
+        text: `Your OTP is ${otp}. It is valid for 5 minutes.`
+    };
+    await transporter.sendMail(mailOptions);
+
+
+    // sending responce back to the user
+    res.status(200).json(new ApiResponse({}, "OTP sent to email successfully for email verification"))
+
+
+});
+
+
+// register 
+// const registerUser = AsyncHandler(async (req, res, next) => {
+
+
+//     //get user Details from frontend
+//     const { username, password, email, fullName } = req.body
+
+
+//     //field validation ( if blank or not )
+//     if ([password, fullName, email, username].some((field) => field.trim() === "")) {
+//         throw new ApiError(400, "Invalid Api Field")
+//     }
+
+
+//     //allready exists check
+//     const existedUser = await LoginUser.findOne({
+//         $or: [{ email }, { username }]
+//     });
+//     if (existedUser) {
+//         throw new ApiError(409, "User Already Exists")
+//     }
+
+
+//     //create user object
+//     const newUser = await LoginUser.create({
+//         fullName,
+//         email,
+//         username: username.toLowerCase(),
+//         password,
+//     })
+
+
+//     // save to thr db
+//     await newUser.save();
+
+
+//     //remove password from response
+//     const createdUser = await LoginUser.findById(newUser._id).select("-password")
+
+
+//     //check for user creation
+//     if (!createdUser) {
+//         throw new ApiError(500, "Some thing went wrong while creating a new user")
+//     }
+
+
+//     //sending response back to the front-end
+//     res.status(201).json(
+//         new ApiResponse(
+//             createdUser,
+//             "User created successfully"
+//         )
+//     )
+// }
+// )
+const registerUser = AsyncHandler(async (req, res, next) => {
+
+
+    //get user Details from frontend
+    const { email, otp } = req.body
+
+
+    //field validation ( if blank or not )
+    if ([email, otp].some((field) => field.trim() === "")) {
+        return res.status(400).json(new ApiResponse({}, "All fields are required"))
+    }
+
+
+    // Check if OTP is valid
+    const otpRecord = await Otp.findOne({ email, otp });
+    if (!otpRecord || otpRecord.expiresAt < Date.now()) {
+        return res.status(400).json(new ApiResponse({}, "Invalid or expired OTP"))
+    }
+
+
+    // update isVerified to true
+    // Check existed verified user
+    const existedNotVerifiedUser = await LoginUser.findOne({
         email,
-        username: username.toLowerCase(),
-        password,
-    })
+        isVerified: false
+    });
+    existedNotVerifiedUser.isVerified = true;
+    await existedNotVerifiedUser.save();
 
 
-    // save to thr db
-    await newUser.save();
+    // Remove OTP record from the database
+    await Otp.deleteOne({ email, otp });
 
 
-    //remove password from response
-    const createdUser = await LoginUser.findById(newUser._id).select("-password")
+    // Remove password from response
+    const user = await LoginUser.findById(existedNotVerifiedUser._id).select("-password");
 
 
-    //check for user creation
-    if (!createdUser) {
-        throw new ApiError(500, "Some thing went wrong while creating a new user")
+    // Check for user creation
+    if (!user) {
+        return res.status(500).json(new ApiResponse({}, "Something went wrong while creating a new user"))
     }
 
 
-    //sending response back to the front-end
+    // response sending back to the user
     res.status(201).json(
         new ApiResponse(
-            createdUser,
+            user,
             "User created successfully"
         )
-    )
+    );
+
+
 }
 )
 
@@ -194,4 +338,4 @@ const updatePassword = AsyncHandler(async (req, res, next) => {
 });
 
 
-export { registerUser, loginUser, logoutUser, updatePassword }
+export { sendOtp, registerUser, loginUser, logoutUser, updatePassword }

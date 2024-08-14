@@ -45,7 +45,7 @@ const forgotPassword = AsyncHandler(async (req, res, next) => {
 
     // Send OTP via email
     const mailOptions = {
-        from: 'trisha.ghosh@gmail.com',
+        from: 'pukutusputuskutus@gmail.com',
         to: email,
         subject: 'Your OTP for Password Reset',
         // text: `Your OTP is ${otp}. It is valid for 2 minutes.`
@@ -54,7 +54,7 @@ const forgotPassword = AsyncHandler(async (req, res, next) => {
     await transporter.sendMail(mailOptions);
 
 
-    res.status(200).json(new ApiResponse({}, "OTP sent to email"))
+    res.status(200).json(new ApiResponse({}, "OTP sent to email for reset the forgot password"))
 });
 
 // Verify OTP and allow password reset
