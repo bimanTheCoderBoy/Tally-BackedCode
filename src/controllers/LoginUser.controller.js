@@ -48,12 +48,18 @@ const sendOtp = AsyncHandler(async (req, res, next) => {
 
 
     // Check existed not verified user
-    const existedNotVerifiedUser = await LoginUser.findOne({
+    const existedNotVerifiedUser = await LoginUser.findOneAndUpdate({
         $or: [
             { email, isVerified: false },
             { username, isVerified: false }
-        ]
-    });
+        ]},
+        {
+            username, // Updated username
+            password,  // Updated password
+            fullName // Update full name
+        },
+        { new: true } // Return the updated document
+    );
     if (!existedNotVerifiedUser) {
         // Create user object
         const newUser = await LoginUser.create({
