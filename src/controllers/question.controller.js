@@ -3,7 +3,8 @@ import Question from '../models/Questions.model.js';
 import AsyncHandler from '../utils/AsyncHandler.js';
 import mongoose from 'mongoose';
 import ApiError from '../utils/ApiError.js';
-import { executeCoder, runJavaCompile, runJavaInDocker } from '../utils/executeCoder.js';
+import { runTestCaseJava } from '../utils/runJavaCode.js';
+import {runPythonTestCase} from "../utils/runPythonCode.js"
 import fs from "fs"
 // Get all questions
 export const getAllQuestions = AsyncHandler(async (req, res) => {
@@ -20,7 +21,6 @@ export const getAllQuestions = AsyncHandler(async (req, res) => {
   res.status(200).json({ questions, success: true });
   // res.status(200).json({ message: 'test' });
 });
-
 
 // Get a single question by ID
 export const getQuestionById = AsyncHandler(async (req, res) => {
@@ -39,11 +39,11 @@ export const getQuestionById = AsyncHandler(async (req, res) => {
   }
 });
 
-
 // Add a new question
 export const addQuestion = AsyncHandler(async (req, res) => {
   // console.log("test");
-  const { title, description, difficulty, constraints, testCases, author } = req.body;
+  const { title, description, difficulty, constraints, testCases, author } =
+    req.body;
 
   // console.log(res.body);
   // console.log(title);
@@ -53,14 +53,27 @@ export const addQuestion = AsyncHandler(async (req, res) => {
   // console.log(testCases);
   // console.log(author);
 
-  if (!title || !description || !difficulty || !constraints || !testCases || !author) {
-    return res.status(400).json({ message: 'All fields are required.' });
+  if (
+    !title ||
+    !description ||
+    !difficulty ||
+    !constraints ||
+    !testCases ||
+    !author
+  ) {
+    return res.status(400).json({ message: "All fields are required." });
   }
 
   // Validate that difficulty is one of the allowed values
-  const allowedDifficulties = ['Easy', 'Medium', 'Hard'];
+  const allowedDifficulties = ["Easy", "Medium", "Hard"];
   if (!allowedDifficulties.includes(difficulty)) {
-    return res.status(400).json({ message: `Invalid difficulty level. Choose from: ${allowedDifficulties.join(', ')}` });
+    return res
+      .status(400)
+      .json({
+        message: `Invalid difficulty level. Choose from: ${allowedDifficulties.join(
+          ", "
+        )}`,
+      });
   }
 
   const newQuestion = new Question({
@@ -69,7 +82,7 @@ export const addQuestion = AsyncHandler(async (req, res) => {
     difficulty,
     constraints,
     testCases,
-    author
+    author,
   });
 
   await newQuestion.save();
@@ -123,56 +136,27 @@ export const runTestCase = AsyncHandler(async (req, res) => {
   if (!question) {
     throw new ApiError('Question not found', 404);
   }
-  let result = [];
+ 
   const testCases = question.testCases;
+  let result =[];
+  switch (language) {
+    case 'java':
+        result =  await runTestCaseJava(code, className, testCases);
+        break;
+    case 'python':
+      result = await runPythonTestCase(code, testCases);
+        break;
+    case 'java':
+        output = await runJavaCode(code, input,className);
+        break;
+    case 'java':
+        output = await runJavaCode(code, input,className);
+        break;
+    default:
+        throw new ApiError('Unsupported language', 404);
 
-  //compile the code
-  const folder = await runJavaCompile(code, className);
-  console.log(className + "jjjjjjjjjjjjjjjjjj");
-  console.log(folder + "  compiled")
-  for (let i = 0; i < testCases.length; i++) {
-    const tcinput = testCases[i].input;
-    const tcoutput = testCases[i].output;
-    let actualOutput = await runJavaInDocker(folder, className, tcinput);
-
-    // if(actualOutput!=tcoutput){
-    //   throw new ApiError('Test case failed',400);
-    // }
-    actualOutput = actualOutput.replace(/[\x00-\x1F\x7F-\x9F]/g, "");
-    console.log(actualOutput);
-    if (actualOutput == tcoutput) {
-      result.push({
-        input: tcinput,
-        actualOutput: actualOutput,
-        axpectedOutput: tcoutput,
-        status: 'passed'
-      });
-    } else {
-      result.push({
-        input: tcinput,
-        actualOutput: actualOutput,
-        axpectedOutput: tcoutput,
-        status: 'failed'
-      });
-    }
-
-    // console.log(input, expectedOutput);
-    // let result=await runCode(language, code, input);
-    // if(result!=expectedOutput){
-    //   throw new ApiError('Test case failed',400);
-    // }
-    // console.log('Test case passed');
   }
-  try {
-    if (fs.existsSync(folder)) {
-      // fs.unlinkSync(`${folder}/TempCode.java`);
-      fs.unlinkSync(`${folder}/${className}.class`);
-      await fs.promises.rm(folder, { recursive: true, force: true });
-
-    }
-  } catch (error) {
-    console.log(error);
-  }
+  
 
   res.status(200).json({ result, success: true });
 });

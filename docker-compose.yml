@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  main:
+    build: .
+    container_name: coding-platform
+    privileged: true  # Required for Docker-in-Docker
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/app  # Bind your code into the container
+      - /certs:/certs/client
+    ports:
+      - "3010:3010"

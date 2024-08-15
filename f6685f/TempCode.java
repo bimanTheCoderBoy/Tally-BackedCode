@@ -1,1 +1,0 @@
-public class TempCode { // Method to print "Hello" public void printHello() { System.out.println("Hello"); } // Main method to run the code public static void main(String[] args) { TempCode temp = new TempCode(); temp.printHello(); } }
