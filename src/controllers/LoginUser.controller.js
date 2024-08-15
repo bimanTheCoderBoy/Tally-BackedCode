@@ -23,15 +23,15 @@ const transporter = nodemailer.createTransport({
 
 // send otp for email verification
 const sendOtp = AsyncHandler(async (req, res, next) => {
-
+    console.log("ceh");
 
     //get user Details from frontend
     const { username, password, email, fullName } = req.body
 
-
     //field validation ( if blank or not )
     if ([username, password, email, fullName].some((field) => field.trim() === "")) {
-        res.status(400).json(new ApiResponse({}, "All field are required"))
+        // res.status(400).json(new ApiResponse({}, "All field are required"))
+        throw new ApiError("All field are required", 400);
     }
 
 
@@ -43,16 +43,17 @@ const sendOtp = AsyncHandler(async (req, res, next) => {
         ]
     });
     if (existedVerifiedUser) {
-        return res.status(409).json(new ApiResponse({}, "User already exists"))
+        throw new ApiError("User already exists", 400);
     }
-
+    console.log("ceh2");
 
     // Check existed not verified user
     const existedNotVerifiedUser = await LoginUser.findOneAndUpdate({
         $or: [
             { email, isVerified: false },
             { username, isVerified: false }
-        ]},
+        ]
+    },
         {
             username, // Updated username
             password,  // Updated password
@@ -67,10 +68,18 @@ const sendOtp = AsyncHandler(async (req, res, next) => {
             email,
             username: username.toLowerCase(),
             password,
+            isVerified: false
         });
         // Save user to the database
         await newUser.save();
     }
+
+    const existedNotVerifiedUser1 = await LoginUser.findOne({
+        email,
+        isVerified: false
+    });
+    console.log('test2');
+    console.log(existedNotVerifiedUser1);
 
 
     // Generate OTP
@@ -161,7 +170,7 @@ const registerUser = AsyncHandler(async (req, res, next) => {
 
     //get user Details from frontend
     const { email, otp } = req.body
-
+    console.log(req.body);
 
     //field validation ( if blank or not )
     if ([email, otp].some((field) => field.trim() === "")) {
@@ -172,20 +181,23 @@ const registerUser = AsyncHandler(async (req, res, next) => {
     // Check if OTP is valid
     const otpRecord = await Otp.findOne({ email, otp });
     if (!otpRecord || otpRecord.expiresAt < Date.now()) {
-        return res.status(400).json(new ApiResponse({}, "Invalid or expired OTP"))
+        return res.status(400).json(new ApiResponse("Invalid or expired OTP", {}))
     }
 
-
+    console.log('test1');
     // update isVerified to true
     // Check existed verified user
     const existedNotVerifiedUser = await LoginUser.findOne({
         email,
         isVerified: false
     });
+    console.log('test2');
+    console.log(existedNotVerifiedUser);
+    console.log('test2');
     existedNotVerifiedUser.isVerified = true;
+    console.log("test3");
     await existedNotVerifiedUser.save();
-
-
+    console.log("test4");
     // Remove OTP record from the database
     await Otp.deleteOne({ email, otp });
 
@@ -203,8 +215,8 @@ const registerUser = AsyncHandler(async (req, res, next) => {
     // response sending back to the user
     res.status(201).json(
         new ApiResponse(
+            "User created successfully",
             user,
-            "User created successfully"
         )
     );
 
@@ -218,19 +230,18 @@ const loginUser = AsyncHandler(async (req, res, next) => {
 
 
     //getting user data from req.body
-    const { username, email, password } = req.body;
+    const { email, password } = req.body;
 
 
     //username or email check
-    if (!username && !email) {
-        return res.status(400).json(new ApiResponse({}, "Invalid Api Field"))
+    if (!email) {
+        return res.status(400).json(new ApiResponse("Empty Field", {}))
     }
 
 
     //user exists check
     const user = await LoginUser.findOne({
         $or: [
-            { username: username?.trim().toLowerCase() },
             { email: email?.trim().toLowerCase() }
         ]
     })
@@ -270,8 +281,8 @@ const loginUser = AsyncHandler(async (req, res, next) => {
         cookie("accessToken", accessToken, options).
         json(
             new ApiResponse(
-                { validUser, accessToken },
-                "User Logged In Successfully"
+                "User Logged In Successfully",
+                validUser,
             )
         )
 });

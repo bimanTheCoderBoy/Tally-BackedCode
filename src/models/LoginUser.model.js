@@ -30,16 +30,17 @@ const LoginUserSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-  queationSolved: [{
+  questionSolved: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "Question"
   }],
   isVerified: {
     type: Boolean,
     default: false,
+    required: true,
   },
 },
-{ timestamps: true })
+  { timestamps: true })
 
 
 // before save ( if password is modified )
