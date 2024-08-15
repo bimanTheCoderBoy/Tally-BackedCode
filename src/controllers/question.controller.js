@@ -4,6 +4,7 @@ import AsyncHandler from '../utils/AsyncHandler.js';
 import mongoose from 'mongoose';
 import ApiError from '../utils/ApiError.js';
 import { runTestCaseJava } from '../utils/runJavaCode.js';
+import {runPythonTestCase} from "../utils/runPythonCode.js"
 import fs from "fs"
 // Get all questions
 export const getAllQuestions = AsyncHandler(async (req, res) => {
