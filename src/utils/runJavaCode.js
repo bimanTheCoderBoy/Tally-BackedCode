@@ -205,7 +205,7 @@ export const runTestCaseJava=async (code, className, testCases) => {
     try {
       if (fs.existsSync(folder)) {
         // fs.unlinkSync(`${folder}/TempCode.java`);
-        fs.unlinkSync(`${folder}/${className}.class`);
+        // fs.unlinkSync(`${folder}/${className}.class`);
         await fs.promises.rm(folder, { recursive: true, force: true });
       }
     } catch (error) {
