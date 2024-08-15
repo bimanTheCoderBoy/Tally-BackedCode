@@ -4,7 +4,7 @@ import Question from "../models/Questions.model.js";
 import AsyncHandler from "../utils/AsyncHandler.js";
 import fs from "fs";
 import User from "../models/User.model.js";
-import { runJavaCompile, runJavaInDocker,runTestCaseJava } from "../utils/runJavaCode.js";
+import { runJavaCompile, runJavaInDocker, runTestCaseJava } from "../utils/runJavaCode.js";
 import { runPythonTestCase } from "../utils/runPythonCode.js";
 // Get all ongoing contests
 export const getAllContests = AsyncHandler(async (req, res) => {
@@ -238,24 +238,24 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
   const testCases = question.testCases;
 
 
-  let result =[];
+  let result = [];
   switch (language) {
     case 'java':
-        result =  await runTestCaseJava(code, className, testCases);
-        break;
+      result = await runTestCaseJava(code, className, testCases);
+      break;
     case 'python':
       result = await runPythonTestCase(code, testCases);
-        break;
+      break;
     case 'java':
-        output = await runJavaCode(code, input,className);
-        break;
+      output = await runJavaCode(code, input, className);
+      break;
     case 'java':
-        output = await runJavaCode(code, input,className);
-        break;
+      output = await runJavaCode(code, input, className);
+      break;
     default:
-        throw new ApiError('Unsupported language', 404);
-}
-   
+      throw new ApiError('Unsupported language', 404);
+  }
+
   //compile the code
 
   let allPassed = true;
