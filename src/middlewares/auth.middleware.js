@@ -12,7 +12,7 @@ const authMiddleware = AsyncHandler(async (req, res, next)=>{
     const token = req.cookies?.accessToken||req.header("Authorization")?.replace("Bearer ","")
     if(!token)
     {
-        throw new ApiError("Unauthorized user",401)
+        throw new ApiError("Unauthorized user", 401)
     }
     
 
@@ -24,7 +24,7 @@ const authMiddleware = AsyncHandler(async (req, res, next)=>{
     const user=await LoginUser.findById(tokenData?._id)
     if(!user)
     {
-        throw new ApiError("Invalid credentials",400)
+        throw new ApiError("Invalid credentials", 400)
     }
 
 

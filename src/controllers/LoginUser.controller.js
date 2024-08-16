@@ -101,7 +101,7 @@ const sendOtp = AsyncHandler(async (req, res, next) => {
 });
 
 
-
+// register
 const registerUser = AsyncHandler(async (req, res, next) => {
 
 
