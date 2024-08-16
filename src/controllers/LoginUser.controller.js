@@ -101,61 +101,7 @@ const sendOtp = AsyncHandler(async (req, res, next) => {
 });
 
 
-// register 
-// const registerUser = AsyncHandler(async (req, res, next) => {
-
-
-//     //get user Details from frontend
-//     const { username, password, email, fullName } = req.body
-
-
-//     //field validation ( if blank or not )
-//     if ([password, fullName, email, username].some((field) => field.trim() === "")) {
-//         throw new ApiError(400, "Invalid Api Field")
-//     }
-
-
-//     //allready exists check
-//     const existedUser = await LoginUser.findOne({
-//         $or: [{ email }, { username }]
-//     });
-//     if (existedUser) {
-//         throw new ApiError(409, "User Already Exists")
-//     }
-
-
-//     //create user object
-//     const newUser = await LoginUser.create({
-//         fullName,
-//         email,
-//         username: username.toLowerCase(),
-//         password,
-//     })
-
-
-//     // save to thr db
-//     await newUser.save();
-
-
-//     //remove password from response
-//     const createdUser = await LoginUser.findById(newUser._id).select("-password")
-
-
-//     //check for user creation
-//     if (!createdUser) {
-//         throw new ApiError(500, "Some thing went wrong while creating a new user")
-//     }
-
-
-//     //sending response back to the front-end
-//     res.status(201).json(
-//         new ApiResponse(
-//             createdUser,
-//             "User created successfully"
-//         )
-//     )
-// }
-// )
+// register
 const registerUser = AsyncHandler(async (req, res, next) => {
 
 
