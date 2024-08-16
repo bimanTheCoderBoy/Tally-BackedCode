@@ -161,6 +161,7 @@ export const runTestCase = AsyncHandler(async (req, res) => {
 
 
   // if all test cases passed then push that qid to the user specified field
+  if(req.auth){
   let allPassed = true;
   for (let i = 0; i < result.length; i++) {
     if (!result[i].status == "passed") {
@@ -170,11 +171,11 @@ export const runTestCase = AsyncHandler(async (req, res) => {
   }
   // console.log(allPassed);
   if (allPassed) {
-    await LoginUser.findByIdAndUpdate(userid, {
-      $push: { questions: qid },
+    await LoginUser.findByIdAndUpdate(req.user._id, {
+      $push: { questions: id },
     });
   }
-
+  }
 
   res.status(200).json({ result, success: true });
 });
