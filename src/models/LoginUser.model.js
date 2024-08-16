@@ -30,14 +30,19 @@ const LoginUserSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-  queationSolved: [{
+  questionSolved: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Question"
+    ref: "Question",
+    unique: true, // Ensure uniqueness of ObjectIds in the array, means the array will act as a set
   }],
   isVerified: {
     type: Boolean,
     default: false,
   },
+  contests: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User", // Reference to the temporary User model
+  }],
   room:{
     type:new mongoose.Schema({
       roomName: { type: String },
