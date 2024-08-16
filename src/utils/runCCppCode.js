@@ -7,7 +7,7 @@ const docker = new Docker();
 export async function runCCode(code, input) {
     const folder = "f" + Math.floor(Math.random() * 9999) + "f";
     const cFileName = path.join(folder, 'TempCode.c');
-    const outputFileName = path.join(folder, 'TempCode.exe');
+    const outputFileName = path.join(folder, 'TempCode.out');
     console.log(folder, cFileName, outputFileName);
     return new Promise((resolve, reject) => {
         // Write the C code to a file
@@ -24,7 +24,7 @@ export async function runCCode(code, input) {
 
         gccProcess.on('close', async (code) => {
             if (code !== 0) {
-                fs.unlinkSync(cFileName);
+                // fs.unlinkSync(cFileName);
                 if (fs.existsSync(folder)) {
                     await fs.promises.rm(folder, { recursive: true, force: true });
                 }
@@ -33,13 +33,13 @@ export async function runCCode(code, input) {
             }
 
             try {
-                const output = await runExecutableInDocker(folder, 'TempCode.exe', input);
+                const output = await runExecutableInDocker(folder, 'TempCode.out', input);
                 resolve(output);
             } catch (err) {
                 resolve(err.message);
             } finally {
-                fs.unlinkSync(cFileName);
-                fs.unlinkSync(outputFileName);
+                // fs.unlinkSync(cFileName);
+                // fs.unlinkSync(outputFileName);
                 if (fs.existsSync(folder)) {
                     await fs.promises.rm(folder, { recursive: true, force: true });
                 }
@@ -83,8 +83,8 @@ export async function runCppCode(code, input) {
             } catch (err) {
                 resolve(err.message);
             } finally {
-                fs.unlinkSync(cppFileName);
-                fs.unlinkSync(outputFileName);
+                // fs.unlinkSync(cppFileName);
+                // fs.unlinkSync(outputFileName);
                 if (fs.existsSync(folder)) {
                     await fs.promises.rm(folder, { recursive: true, force: true });
                 }
@@ -95,23 +95,25 @@ export async function runCppCode(code, input) {
 
 
 async function runExecutableInDocker(folder, executableName, input) {
-    const tempDir = process.cwd();
-
+    // const tempDir = process.cwd();
+    const tempDir = process.env.HOST_URL;
+    // console.log("test 1");
     return new Promise(async (resolve, reject) => {
         try {
             const container = await docker.createContainer({
                 Image: 'gcc:latest',
-                Cmd: ['sh', '-c', `echo "${input}" | ./${folder}/${executableName}`],
+                Cmd: ['sh', '-c', `chmod +x /app/${folder}/${executableName} && echo "${input}" | /app/${folder}/${executableName}`],
+                // Cmd: ['sh', '-c', `ls -lR /usr/src/app`],
                 Tty: false,
                 HostConfig: {
                     AutoRemove: true,
-                    Binds: [`${tempDir}:/usr/src/app`],
+                    Binds: [`${tempDir}:/app`],
                     NetworkMode: 'none',
                     Memory: 512 * 1024 * 1024,
                     CpuPeriod: 100000,
                     CpuQuota: 50000,
                 },
-                WorkingDir: '/usr/src/app',
+                WorkingDir: '/app',
                 OpenStdin: true,
                 StdinOnce: true,
             });
@@ -144,7 +146,7 @@ async function runExecutableInDocker(folder, executableName, input) {
                 }),
                 timeoutPromise,
             ]);
-
+            console.log(output);
             resolve(output);
         } catch (err) {
             resolve(`Error running Docker container: ${err.message}`);

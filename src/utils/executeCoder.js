@@ -24,7 +24,6 @@ async function executeCoder(language, code, input,className) {
             output = await runCppCode(code, input);
             break;
         case 'c':
-            
             output = await runCCode(code, input);
             break;
         default:
