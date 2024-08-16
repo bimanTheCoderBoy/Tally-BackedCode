@@ -4,6 +4,7 @@ import Question from "../models/Questions.model.js";
 import AsyncHandler from "../utils/AsyncHandler.js";
 import fs from "fs";
 import User from "../models/User.model.js";
+import LoginUser from "../models/LoginUser.model.js";
 import { runJavaCompile, runJavaInDocker,runTestCaseJava } from "../utils/runJavaCode.js";
 import { runPythonTestCase } from "../utils/runPythonCode.js";
 // Get all ongoing contests
@@ -111,6 +112,8 @@ export const createContest = AsyncHandler(async (req, res) => {
 
 // Join a contest
 export const joinContest = AsyncHandler(async (req, res) => {
+
+
   // const { id } = req.params;
   const { userName, contestCode } = req.body;
 
@@ -162,8 +165,22 @@ export const joinContest = AsyncHandler(async (req, res) => {
   });
   contest.participants.push(user._id);
 
+
   // Save the updated contest
   await contest.save();
+
+
+  // add the reference of this temporary user to the LoginUser contests array if this is a logedin user
+  // const alreadyLoginUser = req.user;
+  const alreadyLoginUser = LoginUser.findOne(req.user._id);
+  if(req.auth==true){
+    alreadyLoginUser.contest.push(user._id);
+  }
+
+
+  // Save the updated Login User
+  await alreadyLoginUser.save();
+
 
   // Calculate the time difference for the cookie expiration
   const expiresIn = new Date(contest.endTime) - new Date();
@@ -189,28 +206,6 @@ export const submitContest = AsyncHandler(async (req, res) => {
   res.status(200).json({ message: "User successfully submitted the contest", success: true });
 });
 
-// // Get leaderboard for a specific contest
-// export const getLeaderboard = AsyncHandler(async (req, res) => {
-//   const { id } = req.params;
-//   const submissions = await Submission.find({ contest: id })
-//     .populate('user')
-//     .sort({ score: -1 });
-
-//   // Group submissions by user and calculate total score
-//   const leaderboard = submissions.reduce((acc, submission) => {
-//     const userId = submission.user._id.toString();
-//     if (!acc[userId]) {
-//       acc[userId] = {
-//         user: submission.user,
-//         score: 0
-//       };
-//     }
-//     acc[userId].score += submission.score;
-//     return acc;
-//   }, {});
-
-//   res.status(200).json(Object.values(leaderboard));
-// });
 
 export const submitQuestion = AsyncHandler(async (req, res) => {
   const { qid } = req.params;
@@ -265,7 +260,7 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
       break;
     }
   }
-  console.log(allPassed);
+  // console.log(allPassed);
   if (allPassed) {
     const response = await User.findByIdAndUpdate(userid, {
       $push: { questions: qid },

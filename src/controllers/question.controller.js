@@ -5,6 +5,8 @@ import ApiError from "../utils/ApiError.js";
 import { runTestCaseJava } from "../utils/runJavaCode.js";
 import { runPythonTestCase } from "../utils/runPythonCode.js";
 import fs from "fs";
+import { loginUser } from "./LoginUser.controller.js";
+import LoginUser from "../models/LoginUser.model.js";
 // Get all questions
 export const getAllQuestions = AsyncHandler(async (req, res) => {
   // get question tittle and dificulty level only as a form of an array of objects
@@ -156,6 +158,23 @@ export const runTestCase = AsyncHandler(async (req, res) => {
     default:
       throw new ApiError("Unsupported language", 404);
   }
+
+
+  // if all test cases passed then push that qid to the user specified field
+  let allPassed = true;
+  for (let i = 0; i < result.length; i++) {
+    if (!result[i].status == "passed") {
+      allPassed = false;
+      break;
+    }
+  }
+  // console.log(allPassed);
+  if (allPassed) {
+    await LoginUser.findByIdAndUpdate(userid, {
+      $push: { questions: qid },
+    });
+  }
+
 
   res.status(200).json({ result, success: true });
 });
