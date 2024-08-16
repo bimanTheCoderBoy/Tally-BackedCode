@@ -47,7 +47,8 @@ import loginUserRouter from './routers/loginUser.router.js'
 app.use("/api/v1/login/user", loginUserRouter);
 import forgotOtpRouter from './routers/forgotOtp.router.js'
 app.use("/api/v1/otp", forgotOtpRouter);
-
+import roomRouter from './routers/room.router.js'
+app.use("/api/v1/room", roomRouter);
 
 // error middleware
 import errorMiddleware from './middlewares/errorMiddleware.js';

@@ -36,6 +36,6 @@ export const getRoom=AsyncHandler(async(req, res)=>{
             success:false});
     }
     res.status(200).json({
-        room,
+        room:room.room,
         success:true});
 })
