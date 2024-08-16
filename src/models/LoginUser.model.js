@@ -38,6 +38,12 @@ const LoginUserSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  room:{
+    type:new mongoose.Schema({
+      roomName: { type: String },
+      roomId: { type: String },
+    }, { _id: false })
+  }
 },
 { timestamps: true })
 
