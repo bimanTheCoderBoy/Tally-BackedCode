@@ -159,22 +159,26 @@ export const runTestCase = AsyncHandler(async (req, res) => {
       throw new ApiError("Unsupported language", 404);
   }
 
-
   // if all test cases passed then push that qid to the user specified field
-  if(req.auth){
-  let allPassed = true;
-  for (let i = 0; i < result.length; i++) {
-    if (!result[i].status == "passed") {
-      allPassed = false;
-      break;
+  console.log(req.auth)
+  if (req.auth) {
+    
+    let allPassed = true;
+    for (let i = 0; i < result.length; i++) {
+      if (!result[i].status == "passed") {
+        allPassed = false;
+        break;
+      }
     }
-  }
-  // console.log(allPassed);
-  if (allPassed) {
-    await LoginUser.findByIdAndUpdate(req.user._id, {
-      $push: { questions: id },
-    });
-  }
+    // console.log(allPassed);
+    if (allPassed) {
+
+      await LoginUser.findByIdAndUpdate(req.user._id, {
+        $push: { questionSolved: id },
+        
+      });
+      
+    }
   }
 
   res.status(200).json({ result, success: true });
