@@ -30,6 +30,7 @@ const authMiddleware = AsyncHandler(async (req, res, next)=>{
 
     //adding user to request object
     req.user=user
+    // console.log(req.user);
     next()
 })
 
