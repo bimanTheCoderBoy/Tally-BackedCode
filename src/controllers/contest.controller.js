@@ -7,6 +7,9 @@ import User from "../models/User.model.js";
 import LoginUser from "../models/LoginUser.model.js";
 import { runJavaCompile, runJavaInDocker,runTestCaseJava } from "../utils/runJavaCode.js";
 import { runPythonTestCase } from "../utils/runPythonCode.js";
+// import jwt from 'jsonwebtoken'
+
+
 // Get all ongoing contests
 export const getAllContests = AsyncHandler(async (req, res) => {
   // Find contests where the end time is greater than or equal to the current date
@@ -119,7 +122,7 @@ export const joinContest = AsyncHandler(async (req, res) => {
 
   // Validate userName & contestCode
   if (!userName || !contestCode) {
-    return res.status(400).json({ message: "userName is required" });
+    return res.status(400).json({ message: "userName or contest code are required" });
   }
 
   // Find the contest and check if it exists

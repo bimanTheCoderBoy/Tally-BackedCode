@@ -172,7 +172,7 @@ export const runTestCase = AsyncHandler(async (req, res) => {
   // console.log(allPassed);
   if (allPassed) {
     await LoginUser.findByIdAndUpdate(req.user._id, {
-      $push: { questions: id },
+      $push: { questionSolved: id },
     });
   }
   }
