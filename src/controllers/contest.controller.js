@@ -174,7 +174,8 @@ export const joinContest = AsyncHandler(async (req, res) => {
   // const alreadyLoginUser = req.user;
   const alreadyLoginUser = LoginUser.findOne(req.user._id);
   if(req.auth==true){
-    alreadyLoginUser.contest.push(user._id);
+    alreadyLoginUser.contests.data.push(user._id);
+    alreadyLoginUser.
   }
 
 
