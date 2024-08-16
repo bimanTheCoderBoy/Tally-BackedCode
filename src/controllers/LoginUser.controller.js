@@ -277,6 +277,42 @@ const loginUser = AsyncHandler(async (req, res, next) => {
 });
 
 
+// get user
+const getUser = AsyncHandler(async (req, res, next) => {
+
+    
+    // get the user from auth middleware
+    const user = req.user;
+    if (!user) {
+        // return res.status(404).json(new ApiResponse({}, 'User not found'));
+        return res.status(404).json({ success: true, message: 'User not found' });
+    }
+
+
+    // Fetching the user's details along with the solved questions
+    const userDetails = await LoginUser.findById(user._id).populate('queationSolved', 'title difficulty');
+    if (!userDetails) {
+        // return res.status(404).json(new ApiResponse({}, 'User not found'));
+        return res.status(404).json({ success: true, message: 'User not found' });
+    }
+
+
+    // Returning the user's details
+    res.status(200).json({
+        success: true,
+        data: {
+            username: userDetails.username,
+            email: userDetails.email,
+            fullName: userDetails.fullName,
+            queationSolved: userDetails.queationSolved,
+            isVerified: userDetails.isVerified,
+            createdAt: userDetails.createdAt,
+            updatedAt: userDetails.updatedAt,
+        }
+    });
+});
+
+
 // logout
 const logoutUser = AsyncHandler(async (req, res, next) => {
 
@@ -344,4 +380,4 @@ const updatePassword = AsyncHandler(async (req, res, next) => {
 });
 
 
-export { sendOtp, registerUser, loginUser, logoutUser, updatePassword }
+export { sendOtp, registerUser, loginUser, getUser, logoutUser, updatePassword }
