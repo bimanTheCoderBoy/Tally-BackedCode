@@ -273,7 +273,7 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
 
 
   // Add a new submission to the Submission collection
-  const newSubmission = new Submission({
+  const newSubmission = new SubmissionContest({
     temporaryUserId: userid,
     isLoginUser: req.auth ? true : false, // true for LoginUser, false for temporary user
     questionId: qid,
