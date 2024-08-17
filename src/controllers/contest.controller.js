@@ -8,6 +8,7 @@ import LoginUser from "../models/LoginUser.model.js";
 import { runJavaCompile, runJavaInDocker,runTestCaseJava } from "../utils/runJavaCode.js";
 import { runPythonTestCase } from "../utils/runPythonCode.js";
 // import jwt from 'jsonwebtoken'
+import SubmissionContest from '../models/SubmissionContest.model.js'
 
 
 // Get all ongoing contests
@@ -256,7 +257,6 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
 }
    
   //compile the code
-
   let allPassed = true;
   for (let i = 0; i < result.length; i++) {
     if (!result[i].status == "passed") {
@@ -270,6 +270,20 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
       $push: { questions: qid },
     });
   }
+
+
+  // Add a new submission to the Submission collection
+  const newSubmission = new SubmissionContest({
+    temporaryUserId: userid,
+    isLoginUser: req.auth ? true : false, // true for LoginUser, false for temporary user
+    questionId: qid,
+    contestId: contestCode,
+    code: code,
+    language: language,
+  });
+
+  await newSubmission.save();
+
 
   res.status(200).json({ result, success: true });
 });
