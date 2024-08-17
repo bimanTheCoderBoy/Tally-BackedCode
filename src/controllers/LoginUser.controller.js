@@ -243,7 +243,7 @@ const getUser = AsyncHandler(async (req, res, next) => {
         select: 'username questions'
       });
     if (!userDetails) {
-        // return res.status(404).json(new ApiResponse({}, 'User not found'));
+        
         return res.status(404).json({ success: true, message: 'User not found' });
     }
     const contestData = await Promise.all(
