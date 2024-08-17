@@ -29,7 +29,7 @@ export const getAllContests = AsyncHandler(async (req, res) => {
 // Get a single contest by ID
 export const getContestById = AsyncHandler(async (req, res) => {
   const { contestcode } = req.params;
-  console.log(contestcode);
+  // console.log(contestcode);
   // Validate the ID format (assuming it's a MongoDB ObjectId)
 
   // const contest = await Contest.findById(id).populate('questions');
@@ -199,7 +199,7 @@ export const joinContest = AsyncHandler(async (req, res) => {
     JSON.stringify({ userid: user._id, contestCode }),
     options
   );
-  console.log(res.cookies);
+  // console.log(res.cookies);
   // Respond with success
   res
     .status(200)
@@ -273,11 +273,12 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
 
 
   // Add a new submission to the Submission collection
+  // console.log(req.auth);
   const newSubmission = new SubmissionContest({
     temporaryUserId: userid,
     isLoginUser: req.auth ? true : false, // true for LoginUser, false for temporary user
     questionId: qid,
-    contestId: contestCode,
+    contestCode: contestCode,
     code: code,
     language: language,
   });

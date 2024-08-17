@@ -49,6 +49,8 @@ import forgotOtpRouter from './routers/forgotOtp.router.js'
 app.use("/api/v1/otp", forgotOtpRouter);
 import roomRouter from './routers/room.router.js'
 app.use("/api/v1/room", roomRouter);
+import recommendationRouter from './routers/recommendation.router.js'
+app.use("/api/v1/recommendation", recommendationRouter);
 
 // error middleware
 import errorMiddleware from './middlewares/errorMiddleware.js';

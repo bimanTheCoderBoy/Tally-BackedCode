@@ -33,8 +33,29 @@ const QuestionSchema = new mongoose.Schema({
     enum: ['Easy', 'Medium', 'Hard'],
     required: true,
   },
+  categories: {
+    type: String,
+    enum: [
+      { name: 'basic', points: 0 },
+      { name: 'array', points: 3 },
+      { name: 'matrix', points: 6 },
+      { name: 'linked list', points: 9 },
+      { name: 'tree', points: 12 },
+      { name: 'graph', points: 15 },
+      { name: 'hash table', points: 18 },
+      { name: 'set', points: 21 },
+      { name: 'map', points: 24 },
+      { name: 'recursion', points: 27 },
+      { name: 'backtracking', points: 30 },
+      { name: 'divide and conquer', points: 33 },
+      { name: 'greedy', points: 39 },
+      { name: 'dynamic programming', points: 42 },
+      { name: 'trie', points: 45 },
+    ],
+    required: true,
+  },
   constraints: {
-    type: [String], // An array of strings representing constraints
+    type: [String], 
     required: true,
   },
   testCases: {

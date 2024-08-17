@@ -14,7 +14,7 @@ router.post('/add', createContest);
 
 router.post('/join', authCheckMiddleware, joinContest);
 
-router.post('/submit/:qid', submitQuestion);
+router.post('/submit/:qid', authCheckMiddleware, submitQuestion);
 router.get('/submitcontest', submitContest);
 
 router.get('/getuser', getUser);

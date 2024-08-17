@@ -159,7 +159,7 @@ export const runTestCase = AsyncHandler(async (req, res) => {
   }
 
   // if all test cases passed then push that qid to the user specified field
-  console.log(req.auth)
+  // console.log(req.auth)
   if (req.auth) {
 
 

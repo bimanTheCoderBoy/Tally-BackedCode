@@ -21,9 +21,8 @@ const SubmissionContestSchema = new mongoose.Schema({
         ref: 'Question', // Reference to the Question model
         required: true
     },
-    contestId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Contest', // Reference to the Contest model
+    contestCode: {
+        type: String,
         required: true
     },
     code: {
