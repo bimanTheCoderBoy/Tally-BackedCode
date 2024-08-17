@@ -194,3 +194,18 @@ export const runTestCase = AsyncHandler(async (req, res) => {
 
   res.status(200).json({ result, success: true });
 });
+
+export const getSubmissions=AsyncHandler(async(req,res) => {
+    if(!req.auth){
+      res.status(401).json({ message:"You Have To Login First To Get This Veiw", success:false});
+      return
+    }
+    const userId=req.user._id;
+    const{qid}=req.params;
+    if(!qid){
+      res.status(400).json({ message:"Missing Question ID", success:false});
+      return
+    }
+    const submissions=await Submission.find({userId,questionId:qid}).sort({createdAt: -1}).select("language code createdAt");
+    res.status(200).json({ submissions, success:false});
+})
