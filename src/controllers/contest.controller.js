@@ -122,7 +122,8 @@ export const joinContest = AsyncHandler(async (req, res) => {
 
   // Validate userName & contestCode
   if (!userName || !contestCode) {
-    return res.status(400).json({ message: "userName or contest code are required" });
+    res.status(400).json({ message: "userName or contest code are required" });
+    return;
   }
 
   // Find the contest and check if it exists

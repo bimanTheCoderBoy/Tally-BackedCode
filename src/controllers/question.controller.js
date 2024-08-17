@@ -4,9 +4,8 @@ import mongoose from "mongoose";
 import ApiError from "../utils/ApiError.js";
 import { runTestCaseJava } from "../utils/runJavaCode.js";
 import { runPythonTestCase } from "../utils/runPythonCode.js";
-import fs from "fs";
-import { loginUser } from "./LoginUser.controller.js";
 import LoginUser from "../models/LoginUser.model.js";
+import Submission from '../models/Submission.model.js';
 // Get all questions
 export const getAllQuestions = AsyncHandler(async (req, res) => {
   // get question tittle and dificulty level only as a form of an array of objects
@@ -162,7 +161,8 @@ export const runTestCase = AsyncHandler(async (req, res) => {
   // if all test cases passed then push that qid to the user specified field
   console.log(req.auth)
   if (req.auth) {
-    
+
+
     let allPassed = true;
     for (let i = 0; i < result.length; i++) {
       if (!result[i].status == "passed") {
@@ -172,13 +172,25 @@ export const runTestCase = AsyncHandler(async (req, res) => {
     }
     // console.log(allPassed);
     if (allPassed) {
-
       await LoginUser.findByIdAndUpdate(req.user._id, {
-        $push: { questionSolved: id },
-        
+        $push: { questionSolved: id }
       });
-      
     }
+
+
+    // Create a new submission
+    const newSubmission = new Submission({
+      // userId: LoginUser.findById(req.user._id),
+      userId: req.user._id,
+      questionId: id,
+      language,
+      code
+    });
+
+    // Save the submission to the database
+    await newSubmission.save();
+
+    
   }
 
   res.status(200).json({ result, success: true });
