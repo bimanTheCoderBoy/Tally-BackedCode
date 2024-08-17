@@ -54,7 +54,7 @@ export const recommendation = AsyncHandler(async (req, res, next) => {
 
     // Check if user is LoginUser
     if (!req.auth) {
-        return res.status(401).json({ success: true, message: 'You need to log in to get recommendations' });
+        return res.status(401).json({ success: false, message: 'You need to log in to get recommendations' });
     }
 
 
@@ -108,6 +108,7 @@ export const recommendation = AsyncHandler(async (req, res, next) => {
 
     // Respond with recommended questions
     res.status(200).json({
+        success: true,
         // priority1Questions: questions1,
         // priority2Questions: questions2,
         recommendedQuestions: [
