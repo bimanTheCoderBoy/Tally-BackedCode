@@ -7,6 +7,7 @@ import Otp from '../models/Otp.model.js'
 import LoginUser from '../models/LoginUser.model.js';
 import jwt from "jsonwebtoken"
 import crypto from 'crypto';
+import ContestModel from '../models/Contest.model.js';
 
 
 // Setup email transporter, 
@@ -236,12 +237,26 @@ const getUser = AsyncHandler(async (req, res, next) => {
     }
 
     // Fetching the user's details along with the solved questions
-    const userDetails = await LoginUser.findById(user._id).populate('questionSolved', 'title difficulty');
+    const userDetails = await LoginUser.findById(user._id).populate('questionSolved', 'title difficulty').populate({
+        path: 'contests.data',
+        model: 'User',
+        select: 'username questions'
+      });
     if (!userDetails) {
         // return res.status(404).json(new ApiResponse({}, 'User not found'));
         return res.status(404).json({ success: true, message: 'User not found' });
     }
-
+    const contestData = await Promise.all(
+      userDetails.contests.map(async (ele) => {
+          const contest = await ContestModel.findOne({ contestCode: ele.contestCode }).select("title contestCode questions");
+          
+          return {
+            contest,
+            user: ele.data
+          };
+        })
+      );
+     
 
     // Returning the user's details
     res.status(200).json({
@@ -254,6 +269,8 @@ const getUser = AsyncHandler(async (req, res, next) => {
             isVerified: userDetails.isVerified,
             createdAt: userDetails.createdAt,
             updatedAt: userDetails.updatedAt,
+            contests:contestData,
+            questionsSolved: userDetails.questionSolved
         }
     });
 });
