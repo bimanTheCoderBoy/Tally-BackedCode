@@ -147,7 +147,7 @@ export const runTestCase = AsyncHandler(async (req, res) => {
       break;
     case "python":
       result = await runPythonTestCase(code, testCases);
-      break;
+      break; 
     case "java":
       output = await runJavaCode(code, input, className);
       break;
@@ -180,7 +180,6 @@ export const runTestCase = AsyncHandler(async (req, res) => {
 
     // Create a new submission
     const newSubmission = new Submission({
-      // userId: LoginUser.findById(req.user._id),
       userId: req.user._id,
       questionId: id,
       language,

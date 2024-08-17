@@ -236,7 +236,7 @@ const getUser = AsyncHandler(async (req, res, next) => {
     }
 
     // Fetching the user's details along with the solved questions
-    const userDetails = await LoginUser.findById(user._id).populate('queationSolved', 'title difficulty');
+    const userDetails = await LoginUser.findById(user._id).populate('questionSolved', 'title difficulty');
     if (!userDetails) {
         // return res.status(404).json(new ApiResponse({}, 'User not found'));
         return res.status(404).json({ success: true, message: 'User not found' });

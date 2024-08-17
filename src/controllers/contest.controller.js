@@ -174,15 +174,16 @@ export const joinContest = AsyncHandler(async (req, res) => {
 
   // add the reference of this temporary user to the LoginUser contests array if this is a logedin user
   // const alreadyLoginUser = req.user;
-  const alreadyLoginUser =await LoginUser.findOne(req.user._id);
+  
   if(req.auth==true){
+    const alreadyLoginUser =await LoginUser.findOne(req.user._id);
     alreadyLoginUser.contests.push({data:user._id,contestCode});
-   
+    // Save the updated Login User
+  await alreadyLoginUser.save();
   }
 
 
-  // Save the updated Login User
-  await alreadyLoginUser.save();
+ 
 
 
   // Calculate the time difference for the cookie expiration
