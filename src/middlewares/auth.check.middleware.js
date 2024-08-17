@@ -15,6 +15,7 @@ const authCheckMiddleware = AsyncHandler(async (req, res, next)=>{
         req.auth=false;
         next();
         // throw new ApiError(401,"Unauthorized user")
+        return;
     }
     
 
@@ -28,6 +29,7 @@ const authCheckMiddleware = AsyncHandler(async (req, res, next)=>{
     {
         req.auth=false;
         next();
+        return; 
     }
 
 
@@ -36,6 +38,7 @@ const authCheckMiddleware = AsyncHandler(async (req, res, next)=>{
     // console.log(req.user);
     req.auth=true;
     next()
+    return;
 })
 
 

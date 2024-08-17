@@ -56,8 +56,8 @@ export async function runJavaCode(code, input,className) {
 export async function runJavaInDocker(folder,className, input) {
     
     return new Promise(async (resolve, reject) => {
-        // const tempDir = process.cwd();
-        const tempDir = process.env.HOST_URL; 
+        const tempDir = process.cwd();
+        // const tempDir = process.env.HOST_URL; 
         
         try {
             // Create Docker container for running the Java class
@@ -182,7 +182,7 @@ export const runTestCaseJava=async (code, className, testCases) => {
     let result = [];
     const folder = await runJavaCompile(code, className);
     for (let i = 0; i < testCases.length; i++) {
-      const tcinput = testCases[i].input;
+      const tcinput = testCases[i].input; 
       const tcoutput = testCases[i].output;
       let actualOutput = await runJavaInDocker(folder, className, tcinput);
       actualOutput = actualOutput.replace(/[\x00-\x1F\x7F-\x9F]/g, "");

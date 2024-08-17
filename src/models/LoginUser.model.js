@@ -43,7 +43,7 @@ const LoginUserSchema = new mongoose.Schema(
     },
     contests: [
       new mongoose.Schema({
-        data: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        data: { type: mongoose.Schema.Types.ObjectId, ref:"User" },
         contestCode: {
           type: String
         },
