@@ -148,9 +148,7 @@ export const joinContest = AsyncHandler(async (req, res) => {
     // Extract userid and contestCode from the cookie
     const { userid } = JSON.parse(contestCookie);
 
-    // console.log(contest.participants.includes(userid));
-    // console.log(contest.participants);
-    console.log(userid);
+  
 
     // return user details if already added
     if (contest.participants.includes(userid)) {
@@ -160,7 +158,7 @@ export const joinContest = AsyncHandler(async (req, res) => {
         questions: findUser.questions,
       });
       return;
-    }
+    } 
   }
 
   // Add the user to the participants array
@@ -176,10 +174,10 @@ export const joinContest = AsyncHandler(async (req, res) => {
 
   // add the reference of this temporary user to the LoginUser contests array if this is a logedin user
   // const alreadyLoginUser = req.user;
-  const alreadyLoginUser = LoginUser.findOne(req.user._id);
+  const alreadyLoginUser =await LoginUser.findOne(req.user._id);
   if(req.auth==true){
-    alreadyLoginUser.contests.data.push(user._id);
-    alreadyLoginUser.contests.contestCode.push(contestCode);
+    alreadyLoginUser.contests.push({data:user._id,contestCode});
+   
   }
 
 

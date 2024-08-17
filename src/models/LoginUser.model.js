@@ -42,12 +42,12 @@ const LoginUserSchema = new mongoose.Schema(
       default: false,
     },
     contests: [
-      {
+      new mongoose.Schema({
         data: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
         contestCode: {
           type: String
         },
-      },
+      },{ _id: false })
     ],
     room: {
       type: new mongoose.Schema(
