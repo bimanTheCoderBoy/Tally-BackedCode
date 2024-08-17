@@ -91,32 +91,37 @@ export const addQuestion = AsyncHandler(async (req, res) => {
   res.status(201).json({ success: true });
 });
 
-export const getDiscussions = AsyncHandler(async () => {
+export const getDiscussions = AsyncHandler(async (req,res) => {
   const { id } = req.params;
   if (!id) {
-    throw new ApiError("Missing ID", 400);
+    res.status(400).json({message: 'Missing Question ID',success: false});
   }
   const question = await Question.findById(id);
   const discussions = question.discussions;
-  res.status(200).json({ discussions: discussions });
+  res.status(200).json({ discussions: discussions,success: true});
 });
-export const putDiscussions = AsyncHandler(async () => {
+export const putDiscussions = AsyncHandler(async (req,res) => {
+  if(!req.auth){
+    res.status(401).json({message: 'You must be logged in to access this page',success: false});
+    return;
+  }
+  // const userid=req.user._id;
   const { id } = req.params;
   if (!id) {
-    throw new ApiError("Missing ID", 400);
+    res.status(400).json({message: 'Missing Question ID',success: false});
   }
 
   const { discussion } = req.body;
   if (!discussion) {
-    throw new ApiError("Missing required fields", 400);
+    res.status(400).json({message: 'discussion required',success: false});
   }
   const question = await Question.findByIdAndUpdate(id, {
-    $push: { discussions: discussion },
+    $push:{discussions:{ discussion: discussion, username: req.user.username,time:Date.now()}},
   });
   if (!question) {
-    throw new ApiError("Question not found", 404);
+    res.status(400).json({message: 'message required',success: false});
   }
-  res.status(200).json({ message: "Discussion added successfully" });
+  res.status(200).json({ message: "Discussion added successfully",success: true});
 });
 
 // test code section
@@ -165,12 +170,12 @@ export const runTestCase = AsyncHandler(async (req, res) => {
 
     let allPassed = true;
     for (let i = 0; i < result.length; i++) {
-      if (!result[i].status == "passed") {
+      if (result[i].status == "failed") {
         allPassed = false;
         break;
       }
     }
-    // console.log(allPassed);
+    console.log(allPassed);
     if (allPassed) {
       await LoginUser.findByIdAndUpdate(req.user._id, {
         $push: { questionSolved: id }
@@ -183,7 +188,8 @@ export const runTestCase = AsyncHandler(async (req, res) => {
       userId: req.user._id,
       questionId: id,
       language,
-      code
+      code,
+      accepted:allPassed
     });
 
     // Save the submission to the database
@@ -194,3 +200,18 @@ export const runTestCase = AsyncHandler(async (req, res) => {
 
   res.status(200).json({ result, success: true });
 });
+
+export const getSubmissions=AsyncHandler(async(req,res) => {
+    if(!req.auth){
+      res.status(401).json({ message:"You Have To Login First To Get This Veiw", success:false});
+      return
+    }
+    const userId=req.user._id;
+    const{qid}=req.params;
+    if(!qid){
+      res.status(400).json({ message:"Missing Question ID", success:false});
+      return
+    }
+    const submissions=await Submission.find({userId,questionId:qid}).sort({createdAt: -1}).select("language code createdAt accepted");
+    res.status(200).json({ submissions, success:true});
+})
