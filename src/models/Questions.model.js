@@ -30,7 +30,10 @@ const QuestionSchema = new mongoose.Schema(
       required: true,
     },
     categories: {
-      type: String,
+      type: new mongoose.Schema({
+        name: String,
+        points: Number,
+      },{_id:false}),
       enum: [
         { name: "basic", points: 0 },
         { name: "array", points: 3 },
@@ -47,6 +50,7 @@ const QuestionSchema = new mongoose.Schema(
         { name: "greedy", points: 39 },
         { name: "dynamic programming", points: 42 },
         { name: "trie", points: 45 },
+        { name: "misc", points: 50 },
       ],
       // required: true,
     },
