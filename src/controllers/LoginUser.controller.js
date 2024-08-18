@@ -275,7 +275,29 @@ const getUser = AsyncHandler(async (req, res, next) => {
     });
 });
 
-
+const getLeaderboard=AsyncHandler(async(req,res)=>{
+   
+    const userRanking = await LoginUser.aggregate([
+        {
+          // Project to include only the username and the count of solved questions
+          $project: {
+            username: 1,
+            questionSolvedCount: { $size: "$questionSolved" }
+          }
+        },
+        {
+          // Sort by the number of solved questions in descending order
+          $sort: { questionSolvedCount: -1 }
+        },
+        {
+          // Limit to the top 20 users
+          $limit: 20
+        }
+      ]);
+      
+    //   console.log(userRanking);
+    res.status(200).json({userRanking,success:true }); 
+});
 // logout
 const logoutUser = AsyncHandler(async (req, res, next) => {
 
@@ -343,4 +365,4 @@ const updatePassword = AsyncHandler(async (req, res, next) => {
 });
 
 
-export { sendOtp, registerUser, loginUser, getUser, logoutUser, updatePassword }
+export { sendOtp, registerUser, loginUser, getUser, logoutUser, updatePassword,getLeaderboard }
