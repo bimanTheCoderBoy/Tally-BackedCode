@@ -41,7 +41,7 @@ const calculateSimilarity = (tokens1, tokens2) => {
 };
 
 // Function to check for plagiarism
-const checkPlagiarism = (userCode, savedCodes, threshold = 0.8) => {
+const checkPlagiarism = async (userCode, savedCodes, threshold = 0.8) => {
     if (typeof userCode !== 'string') {
         throw new TypeError('User code must be a string');
     }
@@ -67,14 +67,19 @@ const checkPlagiarism = (userCode, savedCodes, threshold = 0.8) => {
         if (similarity > threshold) {
             // console.log(`Plagiarism detected with saved code ${index + 1}`);
             isPlagiarized = true;
-        } else {
+        } 
+        // else {
             // console.log(`No plagiarism detected with saved code ${index + 1}`);
-        }
+            // isPlagiarized = false;
+        // }
     });
 
     return isPlagiarized;
 };
 
 
-const isPlagiarized = checkPlagiarism(userCode, savedCodes);
-console.log(`\nPlagiarism Detected: ${isPlagiarized}`); // Output based on similarity
+// const isPlagiarized = checkPlagiarism(userCode, savedCodes);
+// console.log(`\nPlagiarism Detected: ${isPlagiarized}`); // Output based on similarity
+
+
+export default checkPlagiarism

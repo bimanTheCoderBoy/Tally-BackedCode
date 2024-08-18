@@ -5,10 +5,11 @@ import AsyncHandler from "../utils/AsyncHandler.js";
 import fs from "fs";
 import User from "../models/User.model.js";
 import LoginUser from "../models/LoginUser.model.js";
-import { runJavaCompile, runJavaInDocker,runTestCaseJava } from "../utils/runJavaCode.js";
+import { runJavaCompile, runJavaInDocker, runTestCaseJava } from "../utils/runJavaCode.js";
 import { runPythonTestCase } from "../utils/runPythonCode.js";
 // import jwt from 'jsonwebtoken'
 import SubmissionContest from '../models/SubmissionContest.model.js'
+import checkPlagiarism from "../utils/plagiarism.js";
 
 
 // Get all ongoing contests
@@ -16,7 +17,7 @@ export const getAllContests = AsyncHandler(async (req, res) => {
   // Find contests where the end time is greater than or equal to the current date
   const contests = await Contest.find().select(
     "title startTime endTime contestCode"
-  );
+  ) .sort({ startTime: -1 });
 
   // Check if there are no ongoing contests
   if (contests.length === 0) {
@@ -149,7 +150,7 @@ export const joinContest = AsyncHandler(async (req, res) => {
     // Extract userid and contestCode from the cookie
     const { userid } = JSON.parse(contestCookie);
 
-  
+
 
     // return user details if already added
     if (contest.participants.includes(userid)) {
@@ -159,7 +160,7 @@ export const joinContest = AsyncHandler(async (req, res) => {
         questions: findUser.questions,
       });
       return;
-    } 
+    }
   }
 
   // Add the user to the participants array
@@ -175,16 +176,16 @@ export const joinContest = AsyncHandler(async (req, res) => {
 
   // add the reference of this temporary user to the LoginUser contests array if this is a logedin user
   // const alreadyLoginUser = req.user;
-  
-  if(req.auth==true){
-    const alreadyLoginUser =await LoginUser.findOne(req.user._id);
-    alreadyLoginUser.contests.push({data:user._id,contestCode});
+
+  if (req.auth == true) {
+    const alreadyLoginUser = await LoginUser.findOne(req.user._id);
+    alreadyLoginUser.contests.push({ data: user._id, contestCode });
     // Save the updated Login User
-  await alreadyLoginUser.save();
+    await alreadyLoginUser.save();
   }
 
 
- 
+
 
 
   // Calculate the time difference for the cookie expiration
@@ -204,6 +205,8 @@ export const joinContest = AsyncHandler(async (req, res) => {
   res
     .status(200)
     .json({ message: "User successfully joined the contest.", userName, success: true });
+
+
 });
 
 export const submitContest = AsyncHandler(async (req, res) => {
@@ -216,6 +219,7 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
   const { qid } = req.params;
   const data = req.cookies.contest;
   const { userid, contestCode } = JSON.parse(data);
+
 
   const { code, language, className } = req.body;
 
@@ -238,24 +242,24 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
   const testCases = question.testCases;
 
 
-  let result =[];
+  let result = [];
   switch (language) {
     case 'java':
-        result =  await runTestCaseJava(code, className, testCases);
-        break;
+      result = await runTestCaseJava(code, className, testCases);
+      break;
     case 'python':
       result = await runPythonTestCase(code, testCases);
-        break;
+      break;
     case 'java':
-        output = await runJavaCode(code, input,className);
-        break;
+      output = await runJavaCode(code, input, className);
+      break;
     case 'java':
-        output = await runJavaCode(code, input,className);
-        break;
+      output = await runJavaCode(code, input, className);
+      break;
     default:
-        throw new ApiError('Unsupported language', 404);
-}
-   
+      throw new ApiError('Unsupported language', 404);
+  }
+
   //compile the code
   let allPassed = true;
   for (let i = 0; i < result.length; i++) {
@@ -266,7 +270,7 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
   }
   // console.log(allPassed);
   if (allPassed) {
-    const response = await User.findByIdAndUpdate(userid, {
+    await User.findByIdAndUpdate(userid, {
       $push: { questions: qid },
     });
   }
@@ -286,7 +290,26 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
   await newSubmission.save();
 
 
-  res.status(200).json({ result, success: true });
+  // Fetch all previous submissions for the same question in the same contest
+  const previousSubmissions = await SubmissionContest.find({ questionId: qid, contestCode });
+
+  // Extract the code from previous submissions
+  const savedCodes = previousSubmissions.map(submission => submission.code);
+  console.log(savedCodes);
+
+  // Check for plagiarism
+  const isPlagiarized = checkPlagiarism(code, savedCodes);
+
+
+  if (isPlagiarized) {
+    await User.findByIdAndUpdate(userid, { isPlagiarism: true });
+    // const plagedUser = await User.findById(userid);
+    // plagedUser.isPlagiarism=true;
+    // await plagedUser.save();
+  }
+
+
+  res.status(200).json({ result, success: true});
 });
 
 export const getUser = AsyncHandler(async (req, res, next) => {

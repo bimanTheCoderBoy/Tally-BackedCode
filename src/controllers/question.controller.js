@@ -10,7 +10,7 @@ import Submission from '../models/Submission.model.js';
 export const getAllQuestions = AsyncHandler(async (req, res) => {
   // get question tittle and dificulty level only as a form of an array of objects
 
-  const questions = await Question.find().select("title difficulty");
+  const questions = await Question.find().select("title difficulty createdDate").sort({ createdDate: -1 });;
 
   // If no questions are found, return an empty array, at first when no question is created
   if (!questions.length) {
@@ -98,7 +98,8 @@ export const getDiscussions = AsyncHandler(async (req,res) => {
   }
   const question = await Question.findById(id);
   const discussions = question.discussions;
-  res.status(200).json({ discussions: discussions,success: true});
+  const sortedDiscussions = question.discussions.sort((a, b) => b.time - a.time);
+  res.status(200).json({ discussions: sortedDiscussions,success: true});
 });
 export const putDiscussions = AsyncHandler(async (req,res) => {
   if(!req.auth){
@@ -178,7 +179,7 @@ export const runTestCase = AsyncHandler(async (req, res) => {
     console.log(allPassed);
     if (allPassed) {
       await LoginUser.findByIdAndUpdate(req.user._id, {
-        $push: { questionSolved: id }
+        $addToSet: { questionSolved: id }
       });
     }
 

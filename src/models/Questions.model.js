@@ -48,7 +48,7 @@ const QuestionSchema = new mongoose.Schema(
         { name: "dynamic programming", points: 42 },
         { name: "trie", points: 45 },
       ],
-      required: true,
+      // required: true,
     },
     constraints: {
       type: [String],
@@ -70,6 +70,10 @@ const QuestionSchema = new mongoose.Schema(
         },
       ], // An array of strings representing discussion topics
     },
+    createdDate: {
+      type: Date,
+      default: Date.now
+    }
   },
   { timestramps: true }
 );

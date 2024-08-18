@@ -34,7 +34,7 @@ const LoginUserSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Question",
-        unique: true, // Ensure uniqueness of ObjectIds in the array, means the array will act as a set
+        // unique: true, // array will act as a set
       },
     ],
     isVerified: {
