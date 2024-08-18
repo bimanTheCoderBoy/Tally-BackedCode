@@ -32,6 +32,8 @@ COPY . .
 # Expose the necessary port
 EXPOSE 3010
 EXPOSE 10000
+EXPOSE 8080
+
 
 # Set environment variables (if needed)
 ENV DOCKER_TLS_CERTDIR=/certs
