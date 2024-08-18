@@ -271,7 +271,7 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
   // console.log(allPassed);
   if (allPassed) {
     await User.findByIdAndUpdate(userid, {
-      $push: { questions: qid },
+      $addToSet: { questions: qid },
     });
   }
 
