@@ -8,8 +8,8 @@ import LoginUser from '../models/LoginUser.model.js';
 import jwt from "jsonwebtoken"
 import crypto from 'crypto';
 import ContestModel from '../models/Contest.model.js';
-
-
+import Submission from '../models/Submission.model.js';
+import mongoose from 'mongoose';
 // Setup email transporter, 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -240,7 +240,7 @@ const getUser = AsyncHandler(async (req, res, next) => {
     const userDetails = await LoginUser.findById(user._id).populate('questionSolved', 'title difficulty').populate({
         path: 'contests.data',
         model: 'User',
-        select: 'username questions'
+        select: 'username questions isPlagiarism'
       });
     if (!userDetails) {
         
@@ -298,6 +298,40 @@ const getLeaderboard=AsyncHandler(async(req,res)=>{
     //   console.log(userRanking);
     res.status(200).json({userRanking,success:true }); 
 });
+
+
+//Performence graph
+const getPerformence=AsyncHandler(async(req,res)=>{
+    const userId=req.user._id;
+    const result = await Submission.aggregate([
+        {
+          $match: { userId: userId }
+        },
+        {
+          $group: {
+            _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+            solvedCount: { $sum: 1 }
+          }
+        },
+       
+        {
+          $sort: { _id: 1 }
+        },
+        
+        {
+          $project: {
+            _id: 0,
+            date: "$_id",
+            solvedCount: "$solvedCount"
+          }
+        }
+      ]);
+      res.status(200).json({result,success:true }); 
+})
+const getBadges=AsyncHandler(async (req,res) => {
+    
+    res.status(200).json({questionCount:req.user.questionSolved.length,success:true });
+})
 // logout
 const logoutUser = AsyncHandler(async (req, res, next) => {
 
@@ -365,4 +399,4 @@ const updatePassword = AsyncHandler(async (req, res, next) => {
 });
 
 
-export { sendOtp, registerUser, loginUser, getUser, logoutUser, updatePassword,getLeaderboard }
+export { sendOtp, registerUser, loginUser, getUser, logoutUser, updatePassword,getLeaderboard ,getPerformence,getBadges}
