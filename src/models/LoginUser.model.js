@@ -73,6 +73,7 @@ LoginUserSchema.pre("save", async function (next) {
 // generate access token
 LoginUserSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
+  // return this.password;
 };
 
 // generate access token

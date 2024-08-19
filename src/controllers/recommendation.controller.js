@@ -41,29 +41,38 @@ const getDifficultyPoints = (difficulty) => {
 };
 
 
-// Calculate priority
-const calculatePriority = (category, difficulty) => {
-    const categoryPoint = getCategoryPoints[category] || 0;
-    const difficultyPoint = getDifficultyPoints[difficulty] || 0;
-    return categoryPoint + difficultyPoint;
-};
+
 
 
 export const recommendation = AsyncHandler(async (req, res, next) => {
 
-
+    
     // Check if user is LoginUser
     if (!req.auth) {
         return res.status(401).json({ success: false, message: 'You need to log in to get recommendations' });
     }
 
 
-    const { category, difficulty } = req.body;
-
-
-    // Check for required fields ( if blanck or not )
-    if (!category || !difficulty) {
-        return res.status(400).json({ success: true, message: 'Category and difficulty are required' });
+    // Get user and their solved questions
+    const logedinUser = await LoginUser.findById(req.user._id).populate('questionSolved');
+    if (!logedinUser) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
+    // If the user is new (has not solved any questions)
+    
+    if (logedinUser.questionSolved.length === 0) {
+        const basicQuestions = await Question.find({ 'categories.name':'basic' }).limit(4);
+        const arrayQuestion = await Question.find({ 'categories.name': 'array' }).limit(1);
+        // console.log(basicQuestions);
+        // console.log(arrayQuestion);
+        return res.status(200).json({
+            success: true,
+            recommendedQuestions: [
+                ...basicQuestions,
+                ...arrayQuestion
+            ],
+        });
     }
 
 
@@ -81,12 +90,14 @@ export const recommendation = AsyncHandler(async (req, res, next) => {
 
     // Calculate average priority of the last 5 solved questions
     const solvedQuestions = user.questionSolved.slice(-5);
+    
     const totalPriority = solvedQuestions.reduce((acc, question) => {
         const catPoints = getCategoryPoints(question.categories);
         const diffPoints = getDifficultyPoints(question.difficulty);
         return acc + (catPoints + diffPoints);
     }, 0);
     const averagePriority = totalPriority / solvedQuestions.length;
+    
 
     // Retrieve questions based on priority
     const priority1 = averagePriority + 1;
@@ -94,17 +105,77 @@ export const recommendation = AsyncHandler(async (req, res, next) => {
 
 
     // Find questions with priority (averagePriority + 1) and (averagePriority + 2)
-  const questions1 = await Question.find({
-    $expr: {
-      $eq: [calculatePriority('$category', '$difficulty'), priority1]
-    }
-  }).limit(2);
-
-  const questions2 = await Question.find({
-    $expr: {
-      $eq: [calculatePriority('$category', '$difficulty'), priority2]
-    }
-  }).limit(3);
+    const questions1 = await Question.aggregate([
+        // Add fields to map difficulty to points and then calculate the total points
+        {
+          $addFields: {
+            difficultyPoints: {
+              $switch: {
+                branches: [
+                  { case: { $eq: ["$difficulty", "Easy"] }, then: 1 },
+                  { case: { $eq: ["$difficulty", "Medium"] }, then: 2 },
+                  { case: { $eq: ["$difficulty", "Hard"] }, then: 3 }
+                ],
+                default: 0 // Default to 0 if no match
+              }
+            },
+          }
+        },
+        {
+            $addFields: {
+            totalPoints: {
+                $add: ["$categories.points", "$difficultyPoints"]
+              }
+            }
+        },
+       
+        // Match documents where totalPoints equals the target sum (10)
+        {
+          $match: {
+            totalPoints:14
+          }
+        }, {
+            $limit: 6
+          },
+      ]);
+    //   console.log(questions1);
+      const questions2 = await Question.aggregate([
+        // Add fields to map difficulty to points and then calculate the total points
+        {
+          $addFields: {
+            difficultyPoints: {
+              $switch: {
+                branches: [
+                  { case: { $eq: ["$difficulty", "Easy"] }, then: 1 },
+                  { case: { $eq: ["$difficulty", "Medium"] }, then: 2 },
+                  { case: { $eq: ["$difficulty", "Hard"] }, then: 3 }
+                ],
+                default: 0 // Default to 0 if no match
+              }
+            },
+          }
+        },
+        {
+            $addFields: {
+            totalPoints: {
+                $add: ["$categories.points", "$difficultyPoints"]
+              }
+            }
+        },
+        
+        // Match documents where totalPoints equals the target sum (10)
+        {
+          $match: {
+            totalPoints: 4
+          }
+        },
+        {
+            $limit: 4
+          },
+      ]);
+      
+  
+ 
 
     // Respond with recommended questions
     res.status(200).json({
