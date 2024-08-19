@@ -15,14 +15,20 @@ import checkPlagiarism from "../utils/plagiarism.js";
 // Get all ongoing contests
 export const getAllContests = AsyncHandler(async (req, res) => {
   // Find contests where the end time is greater than or equal to the current date
-  const contests = await Contest.find().select(
+  let contestss = await Contest.find().select(
     "title startTime endTime contestCode"
   ) .sort({ startTime: -1 });
 
   // Check if there are no ongoing contests
-  if (contests.length === 0) {
+  if (contestss.length === 0) {
     return res.status(404).json({ message: "No contests found.", success: false });
   }
+  const contests=contestss.map((ele)=>{
+    // let active=new Date(ele.endTime).getTime()<new Date(Date.now()).getTime();
+    let active=new Date(ele.endTime).getTime()>=new Date(Date.now()).getTime();
+    return {...ele._doc,active};
+    
+  })
   // Send the list of ongoing contests
   res.status(200).json({ contests, success: true });
 });
@@ -137,7 +143,7 @@ export const joinContest = AsyncHandler(async (req, res) => {
   // Check if the contest is ongoing
   const currentTime = new Date();
   if (currentTime < contest.startTime || currentTime > contest.endTime) {
-    return res.status(200).json({ message: "This contest is not ongoing." });
+    return res.status(200).json({ message: "This contest is not ongoing." ,success: true });
   }
 
   // Access the 'contest' cookie
@@ -291,7 +297,11 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
 
 
   // Fetch all previous submissions for the same question in the same contest
-  const previousSubmissions = await SubmissionContest.find({ questionId: qid, contestCode });
+  const previousSubmissions = await SubmissionContest.find({ 
+    questionId: qid, 
+    contestCode,
+    _id: { $ne: newSubmission._id } // Exclude the current submission
+  });
 
   // Extract the code from previous submissions
   const savedCodes = previousSubmissions.map(submission => submission.code);
