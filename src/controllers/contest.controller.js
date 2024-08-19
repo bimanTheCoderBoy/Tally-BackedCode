@@ -23,9 +23,14 @@ export const getAllContests = AsyncHandler(async (req, res) => {
   if (contestss.length === 0) {
     return res.status(404).json({ message: "No contests found.", success: false });
   }
-
-  
-  res.status(200).json({ contestss , success: true });
+  const contests=contestss.map((ele)=>{
+    // let active=new Date(ele.endTime).getTime()<new Date(Date.now()).getTime();
+    let active=new Date(ele.endTime).getTime()>=new Date(Date.now()).getTime();
+    return {...ele._doc,active};
+    
+  })
+  // Send the list of ongoing contests
+  res.status(200).json({ contests, success: true });
 });
 
 // Get a single contest by ID
