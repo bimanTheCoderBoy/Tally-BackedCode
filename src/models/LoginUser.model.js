@@ -63,17 +63,17 @@ const LoginUserSchema = new mongoose.Schema(
 );
 
 // before save ( if password is modified )
-// LoginUserSchema.pre("save", async function (next) {
-//   if (this.isModified("password")) {
-//     this.password = await bcrypt.hash(this.password, 10);
-//   }
-//   next();
-// });
+LoginUserSchema.pre("save", async function (next) {
+  if (this.isModified("password")) {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
+  next();
+});
 
 // generate access token
 LoginUserSchema.methods.isPasswordCorrect = async function (password) {
-  // return await bcrypt.compare(password, this.password);
-  return this.password;
+  return await bcrypt.compare(password, this.password);
+  // return this.password;
 };
 
 // generate access token
