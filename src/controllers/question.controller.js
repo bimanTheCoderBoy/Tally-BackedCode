@@ -81,8 +81,7 @@ export const addQuestion = AsyncHandler(async (req, res) => {
 
   await newQuestion.save();
 
-  console.log("done");
-  res.status(201).json({ success: true });
+  res.status(201).json({ success: true, message: "your question added successfully" });
 });
 
 export const getDiscussions = AsyncHandler(async (req,res) => {

@@ -23,8 +23,27 @@ export const getAllContests = AsyncHandler(async (req, res) => {
   if (contests.length === 0) {
     return res.status(404).json({ message: "No contests found.", success: false });
   }
+
+  // Add status based on the current date
+  // const contestsWithStatus = contests.map(contest => {
+  //   const status = contest.endTime >= currentDate ? 'Ongoing' : 'Closed';
+  //   return {
+  //     _id: contest._id,
+  //     title: contest.title,
+  //     startTime: contest.startTime,
+  //     endTime: contest.endTime,
+  //     contestCode: contest.contestCode,
+  //     status: status
+  //   };
+  // });
+  // if (!contestsWithStatus.length) {
+  //   return res.status(404).json({ message: "No contests found.", success: false });
+  // }
+
+
   // Send the list of ongoing contests
-  res.status(200).json({ contests, success: true });
+  // res.status(200).json({ contests: contestsWithStatus , success: true });
+  res.status(200).json({ contests , success: true });
 });
 
 // Get a single contest by ID
@@ -291,7 +310,11 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
 
 
   // Fetch all previous submissions for the same question in the same contest
-  const previousSubmissions = await SubmissionContest.find({ questionId: qid, contestCode });
+  const previousSubmissions = await SubmissionContest.find({ 
+    questionId: qid, 
+    contestCode,
+    _id: { $ne: newSubmission._id } // Exclude the current submission
+  });
 
   // Extract the code from previous submissions
   const savedCodes = previousSubmissions.map(submission => submission.code);
