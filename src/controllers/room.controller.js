@@ -25,17 +25,19 @@ export const createRoom=AsyncHandler(async(req, res)=>{
 })
 
 export const getRoom=AsyncHandler(async(req, res)=>{
-    const user=req.user;
+    // const user=req.user;
+    // if(!user){
+    //     throw new ApiError("user not found", 401);
+    // }
+    const {roomId}=req.body;
+    const user=await LoginUser.findOne({'room.roomId':roomId}).select("room");
+
     if(!user){
-        throw new ApiError("user not found", 401);
-    }
-    const room=await LoginUser.findById(user._id).select("room");
-    if(!room){
         res.status(400).json({
             message:"room not found",
             success:false});
     }
     res.status(200).json({
-        room:room.room,
+        roomData:user,
         success:true});
 })
