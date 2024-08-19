@@ -24,25 +24,7 @@ export const getAllContests = AsyncHandler(async (req, res) => {
     return res.status(404).json({ message: "No contests found.", success: false });
   }
 
-  // Add status based on the current date
-  // const contestsWithStatus = contests.map(contest => {
-  //   const status = contest.endTime >= currentDate ? 'Ongoing' : 'Closed';
-  //   return {
-  //     _id: contest._id,
-  //     title: contest.title,
-  //     startTime: contest.startTime,
-  //     endTime: contest.endTime,
-  //     contestCode: contest.contestCode,
-  //     status: status
-  //   };
-  // });
-  // if (!contestsWithStatus.length) {
-  //   return res.status(404).json({ message: "No contests found.", success: false });
-  // }
-
-
-  // Send the list of ongoing contests
-  // res.status(200).json({ contests: contestsWithStatus , success: true });
+  
   res.status(200).json({ contestss , success: true });
 });
 
