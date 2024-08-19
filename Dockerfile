@@ -21,11 +21,6 @@ COPY package*.json ./
 # Install Node.js dependencies
 RUN npm install
 
-# Pull additional Docker images inside the container (for DinD)
-RUN docker pull openjdk:18-slim \
-    && docker pull python:3.10-slim \
-    && docker pull gcc:latest
-
 # Copy the rest of the application code
 COPY . .
 
