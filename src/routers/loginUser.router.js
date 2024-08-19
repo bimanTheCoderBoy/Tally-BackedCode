@@ -4,7 +4,7 @@ import authMiddleware from '../middlewares/auth.middleware.js'
 import {sendOtp, registerUser, loginUser, getUser, logoutUser, updatePassword,getLeaderboard,getPerformence,getBadges} from '../controllers/LoginUser.controller.js'
 const router = express.Router();
 
-
+import authCheckMiddleware from '../middlewares/auth.check.middleware.js';
 router.post('/send-otp', sendOtp)
 router.post('/register', registerUser)
 router.post('/login', loginUser)
