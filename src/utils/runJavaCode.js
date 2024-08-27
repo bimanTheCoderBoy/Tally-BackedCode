@@ -56,8 +56,8 @@ export async function runJavaCode(code, input,className) {
 export async function runJavaInDocker(folder,className, input) {
     
     return new Promise(async (resolve, reject) => {
-        const tempDir = process.cwd();
-        // const tempDir = process.env.HOST_URL; 
+        // const tempDir = process.cwd();
+        const tempDir = process.env.HOST_URL; 
         
         try {
             // Create Docker container for running the Java class
