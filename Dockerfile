@@ -25,14 +25,14 @@ RUN npm install
 COPY . .
 
 # Install OpenJDK 18 from the official slim image
-RUN curl -o openjdk-18-slim.tar.gz https://download.bell-sw.com/java/18/bellsoft-jdk18.0.2.1-linux-amd64-musl.tar.gz \
-    && mkdir /opt/openjdk-18 \
-    && tar -xzf openjdk-18-slim.tar.gz -C /opt/openjdk-18 --strip-components=1 \
-    && rm openjdk-18-slim.tar.gz
+# RUN curl -o openjdk-18-slim.tar.gz https://download.bell-sw.com/java/18/bellsoft-jdk18.0.2.1-linux-amd64-musl.tar.gz \
+#     && mkdir /opt/openjdk-18 \
+#     && tar -xzf openjdk-18-slim.tar.gz -C /opt/openjdk-18 --strip-components=1 \
+#     && rm openjdk-18-slim.tar.gz
 
-# Set environment variables for OpenJDK 18
-ENV JAVA_HOME=/opt/openjdk-18
-ENV PATH="$JAVA_HOME/bin:$PATH"
+# # Set environment variables for OpenJDK 18
+# ENV JAVA_HOME=/opt/openjdk-18
+# ENV PATH="$JAVA_HOME/bin:$PATH"
 
 # Expose the necessary port
 EXPOSE 3010
