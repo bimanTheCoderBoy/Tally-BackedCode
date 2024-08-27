@@ -20,7 +20,7 @@ COPY package*.json ./
 
 # Install Node.js dependencies
 RUN npm install
-
+RUN docker pull openjdk:18-slim
 # Copy the rest of the application code
 COPY . .
 
