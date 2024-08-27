@@ -36,6 +36,7 @@ ENV DOCKER_TLS_CERTDIR=/certs
 # Bind Docker socket and set up volumes for DinD
 VOLUME /var/run/docker.sock:/var/run/docker.sock
 VOLUME /certs:/certs/client
+VOLUME /:/app
 
 # Start the Node.js application
 CMD ["npm", "run", "dev"]
