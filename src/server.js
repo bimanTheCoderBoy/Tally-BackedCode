@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser"
 import "dotenv/config"
 const port = process.env.PORT;
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:5173', 'https://koalacoderz.netlify.app'],
     credentials: true
 }))
 
